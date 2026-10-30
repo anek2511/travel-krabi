@@ -52,9 +52,13 @@ svg{width:100%;height:100%;display:block;transition:all .3s}
 .big{font-size:1.6rem;font-weight:700}.md{display:flex;gap:6px;margin:8px 0}
 .md button{flex:1;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:12px;padding:8px 4px;font:inherit;font-size:.82rem;cursor:pointer}.md button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .lk{display:block;text-align:center;font-size:.8rem;color:var(--mu);margin-top:8px}
+.adb{border:0;border-radius:50%;width:38px;height:38px;background:var(--card);font-size:1.1rem;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.15)}.adb.on{background:var(--ac)}
+.ed{position:absolute;right:52px;top:6px;border:0;border-radius:999px;padding:7px 12px;background:var(--bg);color:var(--ac);font:inherit;font-size:.82rem;cursor:pointer}
+.fm label{display:block;font-size:.8rem;color:var(--mu);margin:10px 0 3px}.fm input,.fm select,.fm textarea{width:100%;border:1px solid var(--ln);border-radius:10px;padding:9px;font:inherit;background:var(--bg);color:var(--tx)}
+.g2{display:flex;gap:8px}.g2>div{flex:1}.ab{display:block;width:100%;margin:0 0 8px;flex:none}
 </style></head><body>
 <div class="app">
-<header><h1>🌴 นำเที่ยวกระบี่<small>แตะหมุดบนแผนที่เพื่อดูรายละเอียดและนำทาง</small></h1></header>
+<header><h1>🌴 นำเที่ยวกระบี่<small>แตะหมุดบนแผนที่เพื่อดูรายละเอียดและนำทาง</small></h1><button id="adb" class="adb" onclick="adminUI()" aria-label="แอดมิน">⚙️</button></header>
 <div class="mapw"><svg id="svg" viewBox="0 0 480 600" preserveAspectRatio="xMidYMid meet"></svg>
 <div class="chips" id="chips"></div>
 <div class="fab"><button id="zi" aria-label="ซูมเข้า">＋</button><button id="zo" aria-label="ซูมออก">－</button><button id="loc" class="loc" aria-label="ตำแหน่งของฉัน">📍</button></div>
@@ -82,7 +86,8 @@ var S=[
 {id:8,n:"เกาะลันตา",c:"เกาะ",la:7.6247,lo:99.0415,p:"lanta",d:"เกาะสงบ ชายหาดยาว วิถีชุมชนชาวเล เหมาะพักผ่อนช้า ๆ",t:"ไปได้ทั้งเรือและรถ (ข้ามแพขนานยนต์)",h:"1–2 วัน"},
 {id:9,n:"ตลาดกลางคืนกระบี่ทาวน์",c:"วัฒนธรรม",la:8.0863,lo:98.9063,p:"town",d:"แหล่งอาหารพื้นเมืองราคาประหยัด ของฝาก และอาหารทะเลสด",t:"เปิดตอนเย็นถึงดึก บางวันอาจปิด ตรวจสอบก่อนไป",h:"1–2 ชม."},
 {id:10,n:"เกาะปอดะ (ทัวร์ 4 เกาะ)",c:"เกาะ",la:7.9667,lo:98.7700,p:"aonang",d:"ทะเลใสหาดทรายขาว นิยมทัวร์ 4 เกาะออกจากอ่าวนาง",t:"ทัวร์เรือหางยาว ประมาณ 1,000–2,000 บาท/คน",h:"1 วัน"}];
-var cats=["ทั้งหมด","หาด","เกาะ","ธรรมชาติ","วัฒนธรรม"],cat="ทั้งหมด",sel=null,me=null,tab=0,navOn=false,view="",watch=null,hdg=null,mode=0,err=0,svg=document.getElementById("svg"),sh=document.getElementById("sh"),bd=document.getElementById("bd");
+var S0=JSON.stringify(S);try{var sv=localStorage.getItem("krabiS");if(sv){var a0=JSON.parse(sv);if(Array.isArray(a0)&&a0.length)S=a0}}catch(e){}
+var cats=["ทั้งหมด","หาด","เกาะ","ธรรมชาติ","วัฒนธรรม"],cat="ทั้งหมด",sel=null,me=null,tab=0,navOn=false,view="",watch=null,hdg=null,mode=0,err=0,adm=false,addMode=false,tmp=null,fid=null,delArm=0,svg=document.getElementById("svg"),sh=document.getElementById("sh"),bd=document.getElementById("bd");
 var V0=[0,0,480,600],vb=V0.slice();
 function hav(a,b,c,d){var r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,h=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)*Math.sin(y/2);return 12742*Math.asin(Math.sqrt(h))}
 function toast(t){var e=document.getElementById("toast");e.textContent=t;e.className="toast on";setTimeout(function(){e.className="toast"},3500)}
@@ -91,7 +96,7 @@ var h='<rect x="-3000" y="-3000" width="6600" height="7000" fill="var(--sea)"/><
 h+='<ellipse cx="'+X(99.05)+'" cy="'+Y(7.62)+'" rx="14" ry="38" transform="rotate(-25 '+X(99.05)+' '+Y(7.62)+')" fill="var(--land)" stroke="var(--ln)" stroke-width="2"/><ellipse cx="'+X(98.77)+'" cy="'+Y(7.74)+'" rx="14" ry="20" fill="var(--land)" stroke="var(--ln)" stroke-width="2"/>';
 h+='<text x="340" y="150" fill="var(--mu)" font-size="14" font-style="italic">จ.กระบี่</text><text x="25" y="420" fill="var(--mu)" font-size="12" font-style="italic">ทะเลอันดามัน</text>';
 var k=vb[2]/480;if(me){var mx=X(me.lo),my=Y(me.la);h+='<circle class="pulse" cx="'+mx+'" cy="'+my+'" r="'+9*k+'"/><circle cx="'+mx+'" cy="'+my+'" r="'+8*k+'" fill="#2a6df4" stroke="#fff" stroke-width="'+3*k+'"/>'}if(navOn&&me&&sel){var t=cur();h+='<line x1="'+X(me.lo)+'" y1="'+Y(me.la)+'" x2="'+X(t.lo)+'" y2="'+Y(t.la)+'" stroke="#2a6df4" stroke-width="'+3.5*k+'" stroke-dasharray="'+9*k+' '+7*k+'" stroke-linecap="round"/>'}
-S.forEach(function(s){if(cat!="ทั้งหมด"&&s.c!=cat&&sel!=s.id)return;var x=X(s.lo),y=Y(s.la),r=(sel==s.id?17:14);
+if(tmp){h+='<circle cx="'+X(tmp.lo)+'" cy="'+Y(tmp.la)+'" r="'+13*k+'" fill="#f5a623" stroke="#fff" stroke-width="'+3*k+'"/><text x="'+X(tmp.lo)+'" y="'+(Y(tmp.la)+5*k)+'" text-anchor="middle" style="font-size:'+14*k+'px">📍</text>'}S.forEach(function(s){if(cat!="ทั้งหมด"&&s.c!=cat&&sel!=s.id)return;var x=X(s.lo),y=Y(s.la),r=(sel==s.id?17:14);
 h+='<g class="mk'+(sel==s.id?' on':'')+'" onclick="pick('+s.id+')"><circle class="pin" cx="'+x+'" cy="'+y+'" r="'+r*k+'"/><text class="e" x="'+x+'" y="'+(y+4.5*k)+'" style="font-size:'+13*k+'px">'+IC[s.c]+'</text><text class="l" x="'+(x+(r+3)*k)+'" y="'+(y+4*k)+'" style="font-size:'+11*k+'px;stroke-width:'+3*k+'px">'+s.n+'</text></g>'});
 svg.innerHTML=h;svg.setAttribute("viewBox",vb.join(" "))}
 function chips(){document.getElementById("chips").innerHTML=cats.map(function(c){return'<button class="'+(c==cat?'on':'')+'" onclick="setC(\''+c+'\')">'+(IC[c]||"🗺️")+' '+c+'</button>'}).join("")}
@@ -106,12 +111,12 @@ if(tab==0){body='<p style="margin:4px 0">'+s.d+'</p><div class="stat"><div><b>'+
 else if(tab==1){body='<div class="n" style="margin:0 0 10px">ราคาห้องพักต่อคืน โซน'+p.a+'</div>'+pr(p.st,["🛏️","🏨","🌟"])+'<p class="n">เป็นราคาประมาณการ อาจเปลี่ยนตามฤดูกาลท่องเที่ยว</p>'}
 else{body='<div class="n" style="margin:0 0 10px">ราคาอาหารต่อคนต่อมื้อ โซน'+p.a+'</div>'+pr(p.fd,["🍜","🦐","🍷"])+'<p class="n">เป็นราคาประมาณการ ไม่รวมเครื่องดื่ม</p>'}
 var ex=tab==1?'<a class="btn" target="_blank" rel="noopener" href="'+gm("ที่พัก ใกล้ "+s.n+" กระบี่")+'">🏨 ดูที่พักจริง</a>':tab==2?'<a class="btn" target="_blank" rel="noopener" href="'+gm("ร้านอาหาร ใกล้ "+s.n+" กระบี่")+'">🍽️ ดูร้านจริง</a>':'<button class="btn" onclick="showMap()">🗺️ ดูบนแผนที่</button>';
-document.getElementById("shc").innerHTML='<div class="hd"><button class="cx" onclick="closeS()" aria-label="ปิด">✕</button><div class="ico">'+IC[s.c]+'</div><h2>'+s.n+'</h2><span class="tag">'+s.c+'</span><span class="tag">โซน'+p.a+'</span></div>'+
+document.getElementById("shc").innerHTML='<div class="hd"><button class="cx" onclick="closeS()" aria-label="ปิด">✕</button>'+(adm?'<button class="ed" onclick="editS()">✏️ แก้ไข</button>':'')+'<div class="ico">'+IC[s.c]+'</div><h2>'+s.n+'</h2><span class="tag">'+s.c+'</span><span class="tag">โซน'+p.a+'</span></div>'+
 '<div class="tabs">'+["ภาพรวม","🏨 ที่พัก","🍽️ อาหาร"].map(function(t,i){return'<button class="'+(i==tab?'on':'')+'" onclick="setT('+i+')">'+t+'</button>'}).join("")+'</div><div class="bd2">'+body+'</div>'+
 '<div class="ft">'+ex+'<button class="btn p" onclick="startNav()">🧭 นำทางเลย</button></div>'}
 function setT(i){tab=i;render()}
-function pick(id){sel=id;tab=0;view="";navOn=false;stopW();layout();var s=S.filter(function(x){return x.id==id})[0];vb=V0.slice();zoom(.6,X(s.lo),Y(s.la)+55);render();sh.classList.add("on");bd.classList.add("on")}
-function closeS(){sh.classList.remove("on");bd.classList.remove("on");sel=null;view="";navOn=false;stopW();layout();draw()}
+function pick(id){if(addMode)return;sel=id;tab=0;view="";navOn=false;stopW();layout();var s=S.filter(function(x){return x.id==id})[0];vb=V0.slice();zoom(.6,X(s.lo),Y(s.la)+55);render();sh.classList.add("on");bd.classList.add("on")}
+function closeS(){sh.classList.remove("on");bd.classList.remove("on");sel=null;tmp=null;addMode=false;view="";navOn=false;stopW();layout();draw()}
 var M=[["🚗","รถยนต์",1.4/45],["🛵","มอเตอร์ไซค์",1.4/40],["🚶","เดิน",1.3/5]],DR=["เหนือ","ตะวันออกเฉียงเหนือ","ตะวันออก","ตะวันออกเฉียงใต้","ใต้","ตะวันตกเฉียงใต้","ตะวันตก","ตะวันตกเฉียงเหนือ"],bear=0;
 function cur(){return S.filter(function(x){return x.id==sel})[0]}
 function layout(){sh.classList.toggle("nav",view=="nav");bd.classList.toggle("clear",view=="nav")}
@@ -134,6 +139,31 @@ else if(!me){body='<p style="margin:6px 0">'+(err?"ไม่ได้รับ�
 else if(km<.05){body='<div class="big" style="margin:8px 0">🎉 ถึงที่หมายแล้ว!</div>'}
 else{body='<div class="cmp"><div class="arw" id="arw" style="transform:rotate('+(b-(hdg||0))+'deg)">↑</div><div><div class="big">'+(km<1?Math.round(km*1000)+" ม.":km.toFixed(1)+" กม.")+'</div><div class="n" style="margin:0">ไปทางทิศ'+DR[Math.round(b/45)%8]+' · ประมาณ '+fm(km*M[mode][2]*60)+'</div></div></div><div class="md">'+M.map(function(m,i){return'<button class="'+(i==mode?'on':'')+'" onclick="setM('+i+')">'+m[0]+' '+m[1]+'</button>'}).join("")+'</div>'+(hdg==null?'<p class="n">ลูกศรชี้ตามทิศเหนือของแผนที่ (บนมือถือจะหมุนตามเข็มทิศเมื่ออนุญาตเซนเซอร์)</p>':'')+(s.c=="เกาะ"?'<p class="n">🚤 ปลายทางเป็นเกาะ ต้องเดินทางโดยเรือ สอบถามท่าเรือและรอบเรือก่อนเดินทาง</p>':'')+(km>40?'<p class="n">📏 อยู่ไกลจากกระบี่ เวลาเป็นค่าประมาณ ควรตรวจสอบเส้นทางจริงใน Google Maps</p>':'')+ext}
 document.getElementById("shc").innerHTML='<div class="nvh"><button class="bk" onclick="back()" aria-label="กลับ">←</button><div><b>'+s.n+'</b><div class="n" style="margin:0">'+(navOn?'🧭 กำลังนำทาง':'📍 ตำแหน่งบนแผนที่')+'</div></div><button class="cx2" onclick="closeS()" aria-label="ปิด">✕</button></div><div class="nvb">'+body+'</div>'}
+var ADMIN_PIN="1234",esc=function(x){return String(x==null?"":x).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")};
+function openSh(){sh.classList.add("on");bd.classList.add("on")}
+function persist(){try{localStorage.setItem("krabiS",JSON.stringify(S))}catch(e){toast("บันทึกถาวรในเบราว์เซอร์นี้ไม่ได้")}}
+svg.addEventListener("click",function(e){if(!addMode||(e.target.closest&&e.target.closest(".mk")))return;var pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;var c=pt.matrixTransform(svg.getScreenCTM().inverse());addMode=false;tmp={la:+(8.55-c.y/600).toFixed(5),lo:+(c.x/600+98.65).toFixed(5)};draw();openForm(null)});
+function adminUI(){view="admin";sel=null;tmp=null;addMode=false;layout();draw();var b;
+if(!adm)b='<label>รหัส PIN แอดมิน</label><input id="pin" type="password" inputmode="numeric" placeholder="PIN" onkeydown="if(event.key==\'Enter\')login()"><p class="n">* PIN ตรวจในเบราว์เซอร์ ใช้ทดลองเท่านั้น ระบบจริงควรล็อกอินที่เซิร์ฟเวอร์</p><button class="btn p ab" onclick="login()">เข้าสู่ระบบ</button>';
+else b='<button class="btn p ab" onclick="startAdd()">📍 ปักหมุดบนแผนที่</button><button class="btn ab" onclick="openForm(null)">➕ เพิ่มโดยกรอกพิกัด</button><button class="btn ab" onclick="dataUI()">📦 นำเข้า / ส่งออกข้อมูล</button><button class="btn ab" onclick="logout()">🚪 ออกจากโหมดแอดมิน</button><p class="n">แตะหมุดสถานที่เดิม แล้วกด ✏️ แก้ไข เพื่อแก้ไขหรือลบ · ข้อมูลเก็บในเบราว์เซอร์นี้</p>';
+document.getElementById("shc").innerHTML='<div class="nvh"><div><b>⚙️ โหมดแอดมิน</b></div><button class="cx2" onclick="closeS()">✕</button></div><div class="bd2 fm">'+b+'</div>';openSh()}
+function login(){if(document.getElementById("pin").value===ADMIN_PIN){adm=true;document.getElementById("adb").className="adb on";toast("เข้าสู่โหมดแอดมินแล้ว");adminUI()}else toast("PIN ไม่ถูกต้อง")}
+function logout(){adm=false;document.getElementById("adb").className="adb";closeS()}
+function startAdd(){closeS();addMode=true;toast("แตะบนแผนที่ตรงตำแหน่งที่ต้องการปักหมุด")}
+function editS(){openForm(cur())}
+function openForm(s){delArm=0;fid=s?s.id:null;var v=s||{n:"",c:"หาด",p:"aonang",la:tmp?tmp.la:8.0863,lo:tmp?tmp.lo:98.9063,d:"",t:"",h:""};view="form";layout();
+var oc=cats.slice(1).map(function(c){return'<option'+(c==v.c?' selected':'')+'>'+c+'</option>'}).join(""),oz=Object.keys(P).map(function(k){return'<option value="'+k+'"'+(k==v.p?' selected':'')+'>'+P[k].a+'</option>'}).join("");
+document.getElementById("shc").innerHTML='<div class="nvh"><div><b>'+(s?"✏️ แก้ไขสถานที่":"➕ เพิ่มสถานที่ใหม่")+'</b></div><button class="cx2" onclick="closeS()">✕</button></div><div class="bd2 fm"><label>ชื่อสถานที่</label><input id="f_n" value="'+esc(v.n)+'"><div class="g2"><div><label>ประเภท</label><select id="f_c">'+oc+'</select></div><div><label>โซน (ใช้แสดงราคา)</label><select id="f_z">'+oz+'</select></div></div><div class="g2"><div><label>ละติจูด</label><input id="f_la" inputmode="decimal" value="'+v.la+'"></div><div><label>ลองจิจูด</label><input id="f_lo" inputmode="decimal" value="'+v.lo+'"></div></div><button class="btn ab" style="margin-top:8px" onclick="useMe()">📍 ใช้ตำแหน่งปัจจุบันของฉัน</button><label>คำอธิบาย</label><textarea id="f_d" rows="3">'+esc(v.d)+'</textarea><label>เคล็ดลับ</label><input id="f_t" value="'+esc(v.t)+'"><label>เวลาที่ใช้เที่ยว (เช่น 2 ชม.)</label><input id="f_h" value="'+esc(v.h)+'"></div><div class="ft">'+(s?'<button class="btn" id="del" onclick="delS()">🗑️ ลบ</button>':'')+'<button class="btn" onclick="closeS()">ยกเลิก</button><button class="btn p" onclick="saveS()">💾 บันทึก</button></div>';openSh()}
+function useMe(){function f(){document.getElementById("f_la").value=me.la.toFixed(5);document.getElementById("f_lo").value=me.lo.toFixed(5)}if(me)return f();if(!navigator.geolocation)return toast("อุปกรณ์ไม่รองรับ");navigator.geolocation.getCurrentPosition(function(r){me={la:r.coords.latitude,lo:r.coords.longitude};f()},function(){toast("ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง")})}
+function saveS(){var g=function(i){return document.getElementById(i).value.trim()},la=parseFloat(g("f_la")),lo=parseFloat(g("f_lo")),o={n:g("f_n"),c:g("f_c"),p:g("f_z"),la:la,lo:lo,d:g("f_d"),t:g("f_t"),h:g("f_h")};
+if(!o.n)return toast("กรุณาใส่ชื่อสถานที่");if(isNaN(la)||isNaN(lo)||la<7.55||la>8.55||lo<98.65||lo>99.45)return toast("พิกัดอยู่นอกขอบเขตแผนที่ (ละติจูด 7.55–8.55, ลองจิจูด 98.65–99.45)");
+if(fid){var i=S.findIndex(function(x){return x.id==fid});o.id=fid;S[i]=o}else{o.id=Math.max.apply(null,S.map(function(x){return x.id}).concat(0))+1;S.push(o)}
+persist();closeS();toast("บันทึกแล้ว ✅")}
+function delS(){var b=document.getElementById("del");if(!delArm){delArm=1;b.textContent="กดอีกครั้งเพื่อยืนยันลบ";return}S=S.filter(function(x){return x.id!=fid});persist();closeS();toast("ลบแล้ว")}
+function dataUI(){delArm=0;view="data";layout();document.getElementById("shc").innerHTML='<div class="nvh"><button class="bk" onclick="adminUI()">←</button><div><b>📦 ข้อมูลสถานที่ (JSON)</b></div><button class="cx2" onclick="closeS()">✕</button></div><div class="bd2 fm"><textarea id="js" rows="9" style="font-size:.75rem;font-family:monospace">'+esc(JSON.stringify(S,null,1))+'</textarea><p class="n">คัดลอกข้อความนี้เก็บไว้เป็นข้อมูลสำรอง หรือวาง JSON ที่ต้องการแล้วกดนำเข้า</p><button class="btn ab" onclick="cpJ()">📋 คัดลอก</button><button class="btn p ab" onclick="impJ()">⬆️ นำเข้าจากข้อความนี้</button><button class="btn ab" id="rst" onclick="rstJ()">♻️ รีเซ็ตเป็นข้อมูลเริ่มต้น</button></div>';openSh()}
+function cpJ(){var t=document.getElementById("js");t.select();try{navigator.clipboard.writeText(t.value)}catch(e){document.execCommand&&document.execCommand("copy")}toast("คัดลอกแล้ว")}
+function impJ(){try{var a=JSON.parse(document.getElementById("js").value);if(!Array.isArray(a)||!a.length)throw 0;a.forEach(function(x,i){if(!x.n||isNaN(x.la)||isNaN(x.lo)||!IC[x.c]||!P[x.p])throw 0;x.id=i+1;x.d=x.d||"";x.t=x.t||"";x.h=x.h||""});S=a;persist();closeS();toast("นำเข้าแล้ว ✅")}catch(e){toast("รูปแบบ JSON ไม่ถูกต้อง")}}
+function rstJ(){var b=document.getElementById("rst");if(!delArm){delArm=1;b.textContent="กดอีกครั้งเพื่อยืนยันรีเซ็ต";return}delArm=0;S=JSON.parse(S0);try{localStorage.removeItem("krabiS")}catch(e){}closeS();toast("รีเซ็ตแล้ว")}
 bd.onclick=closeS;document.addEventListener("keydown",function(e){if(e.key=="Escape")closeS()});
 document.getElementById("loc").onclick=function(){var b=this;if(!navigator.geolocation){toast("อุปกรณ์ไม่รองรับระบุตำแหน่ง");return}toast("กำลังค้นหาตำแหน่ง...");
 navigator.geolocation.getCurrentPosition(function(r){me={la:r.coords.latitude,lo:r.coords.longitude};b.className="loc ok";toast("✅ ได้ตำแหน่งแล้ว");draw();if(sel)render()},function(){toast("ไม่ได้รับอนุญาต แต่กด นำทางเลย แล้ว Google Maps จะใช้ตำแหน่งปัจจุบันให้")},{enableHighAccuracy:true,timeout:10000})};
