@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8"><title>Krabi Guide – นำเที่ยวกระบี่</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#eef4f2;--card:#fff;--tx:#14302a;--mu:#60807a;--ac:#0e8f7e;--ac2:#0a6f62;--sea:#bfe3ee;--land:#e6efd2;--ln:#d3e0db;--sh:0 8px 30px rgba(10,50,45,.22);--hot:#ef5a3c}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1917;--card:#172724;--tx:#e8f2ef;--mu:#95b2ab;--ac:#2fb8a3;--ac2:#1f9684;--sea:#0f2f3a;--land:#26382a;--ln:#27413b;--sh:0 8px 30px rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{--bg:#0d1917;--card:#172724;--tx:#e8f2ef;--mu:#95b2ab;--ac:#2fb8a3;--ac2:#1f9684;--sea:#0f2f3a;--land:#26382a;--ln:#27413b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font-family:"Sarabun","Noto Sans Thai",system-ui,sans-serif;line-height:1.5;overflow:hidden}
+.app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+header{padding:10px 14px 6px;display:flex;align-items:center;gap:10px}
+header h1{font-size:1.2rem;margin:0;flex:1}header small{display:block;color:var(--mu);font-size:.75rem;font-weight:400}
+.mapw{flex:1;position:relative;margin:0 10px 10px;border-radius:20px;overflow:hidden;background:var(--sea);box-shadow:0 2px 12px rgba(10,50,45,.12)}
+svg{width:100%;height:100%;display:block;transition:all .3s}
+.chips{position:absolute;left:0;right:0;top:0;display:flex;gap:6px;overflow-x:auto;padding:10px;scrollbar-width:none}
+.chips button{white-space:nowrap;border:0;border-radius:999px;padding:7px 14px;font:inherit;font-size:.85rem;background:var(--card);color:var(--tx);box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer}
+.chips button.on{background:var(--ac);color:#fff}
+.fab{position:absolute;right:12px;display:flex;flex-direction:column;gap:8px;bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.fab button{width:46px;height:46px;border-radius:50%;border:0;background:var(--card);color:var(--tx);font-size:1.15rem;box-shadow:0 2px 10px rgba(0,0,0,.2);cursor:pointer}
+.fab .loc.ok{background:#2a6df4;color:#fff}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;background:var(--tx);color:var(--bg);padding:8px 14px;border-radius:12px;font-size:.82rem;opacity:0;transition:.3s;pointer-events:none;max-width:80%;text-align:center}.toast.on{opacity:1}
+.mk{cursor:pointer}.mk .pin{fill:var(--card);stroke:var(--ac);stroke-width:3}.mk.on .pin{fill:var(--hot);stroke:#fff}
+.mk text.e{font-size:13px;text-anchor:middle}.mk text.l{font-size:11px;font-weight:600;fill:var(--tx);paint-order:stroke;stroke:var(--land);stroke-width:3px}
+@keyframes pu{0%{r:9;opacity:.6}100%{r:26;opacity:0}}.pulse{animation:pu 1.8s infinite;fill:#2a6df4}
+/* popup */
+.bd{position:fixed;inset:0;background:rgba(5,25,22,.38);opacity:0;pointer-events:none;transition:.25s;z-index:20}.bd.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:21;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--card);border-radius:24px 24px 0 0;box-shadow:var(--sh);transform:translateY(105%);transition:transform .32s cubic-bezier(.2,.8,.2,1);max-height:82vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet.on{transform:none}
+@media(min-width:700px){.sheet{bottom:auto;top:50%;border-radius:24px;transform:translateY(-40%) scale(.96);opacity:0;pointer-events:none;max-height:80vh}.sheet.on{transform:translateY(-50%);opacity:1;pointer-events:auto}}
+.grip{width:42px;height:5px;border-radius:9px;background:var(--ln);margin:9px auto 0}
+.hd{padding:10px 18px 0;position:relative}
+.cx{position:absolute;right:12px;top:6px;width:34px;height:34px;border-radius:50%;border:0;background:var(--bg);color:var(--tx);font-size:1rem;cursor:pointer}
+.ico{font-size:1.9rem;line-height:1}.hd h2{margin:4px 40px 2px 0;font-size:1.3rem}
+.tag{display:inline-block;font-size:.75rem;background:var(--bg);color:var(--ac);border-radius:999px;padding:2px 10px;margin-right:6px}
+.tabs{display:flex;gap:4px;padding:12px 14px 0;border-bottom:1px solid var(--ln)}
+.tabs button{flex:1;border:0;background:none;font:inherit;font-size:.92rem;padding:9px 4px;color:var(--mu);border-bottom:3px solid transparent;cursor:pointer}
+.tabs button.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+.bd2{padding:14px 18px;overflow-y:auto;flex:1}
+.stat{display:flex;gap:8px;margin:10px 0}.stat div{flex:1;background:var(--bg);border-radius:14px;padding:10px;text-align:center;font-size:.8rem;color:var(--mu)}.stat b{display:block;font-size:1.05rem;color:var(--tx)}
+.tip{background:var(--bg);border-left:4px solid var(--ac);border-radius:10px;padding:10px 12px;font-size:.88rem;margin-top:10px}
+.pr{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--ln);border-radius:14px;margin-bottom:8px}
+.pr span{flex:1;font-size:.92rem}.pr b{color:var(--ac2);white-space:nowrap}.pr i{font-style:normal;font-size:1.3rem}
+.n{font-size:.76rem;color:var(--mu);margin:8px 0 0}
+.ft{display:flex;gap:8px;padding:10px 14px 14px;border-top:1px solid var(--ln)}
+.btn{flex:1;text-align:center;text-decoration:none;border:0;border-radius:14px;padding:13px 10px;font:inherit;font-weight:600;background:var(--bg);color:var(--tx);cursor:pointer}
+.btn.p{flex:2;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
+.bd.clear.on{background:transparent;pointer-events:none}.sheet.nav{max-height:none}.sheet.nav.on{top:auto;bottom:14px;transform:none}
+.nvh{display:flex;align-items:center;gap:10px;padding:10px 14px 4px}.nvh>div{flex:1}.nvh b{font-size:1.1rem}
+.bk,.cx2{width:36px;height:36px;border-radius:50%;border:0;background:var(--bg);color:var(--tx);font-size:1rem;cursor:pointer;flex:none}
+.nvb{padding:6px 16px 14px}.cmp{display:flex;align-items:center;gap:14px;margin:6px 0}
+.arw{width:64px;height:64px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--ac);transition:transform .2s;flex:none}
+.big{font-size:1.6rem;font-weight:700}.md{display:flex;gap:6px;margin:8px 0}
+.md button{flex:1;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:12px;padding:8px 4px;font:inherit;font-size:.82rem;cursor:pointer}.md button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.lk{display:block;text-align:center;font-size:.8rem;color:var(--mu);margin-top:8px}
+</style></head><body>
+<div class="app">
+<header><h1>🌴 นำเที่ยวกระบี่<small>แตะหมุดบนแผนที่เพื่อดูรายละเอียดและนำทาง</small></h1></header>
+<div class="mapw"><svg id="svg" viewBox="0 0 480 600" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="chips" id="chips"></div>
+<div class="fab"><button id="zi" aria-label="ซูมเข้า">＋</button><button id="zo" aria-label="ซูมออก">－</button><button id="loc" class="loc" aria-label="ตำแหน่งของฉัน">📍</button></div>
+<div class="toast" id="toast"></div></div></div>
+<div class="bd" id="bd"></div>
+<div class="sheet" id="sh" role="dialog" aria-modal="true"><div class="grip"></div><div id="shc"></div></div>
+<script>
+var X=function(o){return(o-98.65)*600},Y=function(a){return(8.55-a)*600};
+var IC={"หาด":"🏖️","เกาะ":"🏝️","ธรรมชาติ":"🌿","วัฒนธรรม":"🛕"};
+var P={
+aonang:{a:"อ่าวนาง",st:[["ประหยัด · ฮอสเทล/เกสต์เฮาส์","400–900"],["ระดับกลาง · โรงแรม 3 ดาว","1,500–3,000"],["หรู · รีสอร์ท 4–5 ดาว","4,500–12,000"]],fd:[["ข้าวแกง/ตามสั่ง","60–120"],["ซีฟู้ด/ร้านนั่งสบาย","250–500"],["ร้านริมหาดระดับสูง","800–1,500"]]},
+railay:{a:"ไร่เลย์",st:[["ประหยัด · บังกะโล","800–1,500"],["ระดับกลาง","2,500–5,000"],["หรู · รีสอร์ทริมหาด","6,000–15,000"]],fd:[["ร้านอาหารเล็ก ๆ","120–250"],["ร้านทั่วไป/ซีฟู้ด","300–600"],["ร้านในรีสอร์ท","900–2,000"]]},
+town:{a:"ตัวเมืองกระบี่",st:[["ประหยัด · เกสต์เฮาส์","350–700"],["ระดับกลาง","900–1,800"],["โรงแรมใหญ่","2,000–4,000"]],fd:[["ตลาดกลางคืน/ข้าวแกง","50–120"],["ร้านอาหารทะเล","200–450"],["ร้านริมแม่น้ำ","500–900"]]},
+phiphi:{a:"เกาะพีพี",st:[["ประหยัด · ฮอสเทล","500–1,000"],["ระดับกลาง","2,000–4,000"],["หรู","6,000–20,000"]],fd:[["ร้านเล็ก/ข้าวผัด","120–250"],["ร้านทั่วไป","300–600"],["ร้านริมทะเลระดับสูง","900–2,000"]]},
+lanta:{a:"เกาะลันตา",st:[["ประหยัด · บังกะโล","500–1,000"],["ระดับกลาง","1,500–3,500"],["หรู","5,000–15,000"]],fd:[["ร้านตามสั่ง","80–180"],["ซีฟู้ดริมทะเล","250–550"],["ร้านในรีสอร์ท","700–1,500"]]},
+nature:{a:"โซนคลองท่อม",st:[["ประหยัด · โฮมสเตย์","400–900"],["รีสอร์ทธรรมชาติ","1,200–2,500"],["พักในเมือง/อ่าวนางแทน","ดูโซนอื่น"]],fd:[["ร้านพื้นบ้าน","60–150"],["ร้านรีสอร์ท","200–400"],["ร้านในเมือง","ดูโซนอื่น"]]}};
+var S=[
+{id:1,n:"หาดอ่าวนาง",c:"หาด",la:8.0319,lo:98.8228,p:"aonang",d:"ศูนย์กลางท่องเที่ยวของกระบี่ มีร้านอาหาร ท่าเรือ และทัวร์ไปเกาะต่าง ๆ ครบ เหมาะเป็นฐานพักค้างคืน",t:"พระอาทิตย์ตกสวย ใช้เวลาเที่ยวประมาณ 2–3 ชม.",h:"2–3 ชม."},
+{id:2,n:"หาดไร่เลย์",c:"หาด",la:8.0113,lo:98.8386,p:"railay",d:"คาบสมุทรที่เข้าได้ด้วยเรือหางยาวเท่านั้น ขึ้นชื่อเรื่องหน้าผาหินปูนและการปีนผา",t:"ขึ้นเรือจากท่าอ่าวนาง ค่าเรือประมาณ 100–200 บาท/เที่ยว",h:"ครึ่งวัน"},
+{id:3,n:"หาดพระนาง",c:"หาด",la:8.0050,lo:98.8350,p:"railay",d:"หาดทรายขาวใต้หน้าผา มีถ้ำพระนางและวิวสวยที่สุดแห่งหนึ่งของกระบี่",t:"เดินต่อจากไร่เลย์ได้ ไม่ไกล",h:"2 ชม."},
+{id:4,n:"วัดถ้ำเสือ",c:"วัฒนธรรม",la:8.1193,lo:98.9217,p:"town",d:"วัดบนเขา ต้องเดินขึ้นบันไดราว 1,237 ขั้นเพื่อชมวิวพาโนรามา",t:"ไปตอนเช้าตรู่ อากาศเย็นกว่าและคนน้อย",h:"2 ชม."},
+{id:5,n:"สระมรกต",c:"ธรรมชาติ",la:7.9440,lo:99.2210,p:"nature",d:"สระน้ำธรรมชาติสีเขียวมรกตในป่าคลองท่อม ว่ายน้ำได้ ใกล้บ่อน้ำร้อน",t:"ไปตอนเช้า ค่าเข้าชมแยกชาวไทย/ต่างชาติ (พิกัดโดยประมาณ)",h:"2–3 ชม."},
+{id:6,n:"อ่าวท่าเลน",c:"ธรรมชาติ",la:8.1830,lo:98.7950,p:"town",d:"ป่าชายเลนและลำคลองท่ามกลางภูเขาหินปูน นิยมพายเรือคายัค",t:"จองทัวร์ครึ่งวัน ประมาณ 600–1,200 บาท",h:"ครึ่งวัน"},
+{id:7,n:"เกาะพีพี",c:"เกาะ",la:7.7407,lo:98.7784,p:"phiphi",d:"เกาะชื่อดังระดับโลก น้ำใสหาดสวย มีกิจกรรมดำน้ำตื้น/ลึก",t:"ไปด้วยเรือจากท่าเรือกระบี่ ราว 1.5–2 ชม.",h:"1 วัน"},
+{id:8,n:"เกาะลันตา",c:"เกาะ",la:7.6247,lo:99.0415,p:"lanta",d:"เกาะสงบ ชายหาดยาว วิถีชุมชนชาวเล เหมาะพักผ่อนช้า ๆ",t:"ไปได้ทั้งเรือและรถ (ข้ามแพขนานยนต์)",h:"1–2 วัน"},
+{id:9,n:"ตลาดกลางคืนกระบี่ทาวน์",c:"วัฒนธรรม",la:8.0863,lo:98.9063,p:"town",d:"แหล่งอาหารพื้นเมืองราคาประหยัด ของฝาก และอาหารทะเลสด",t:"เปิดตอนเย็นถึงดึก บางวันอาจปิด ตรวจสอบก่อนไป",h:"1–2 ชม."},
+{id:10,n:"เกาะปอดะ (ทัวร์ 4 เกาะ)",c:"เกาะ",la:7.9667,lo:98.7700,p:"aonang",d:"ทะเลใสหาดทรายขาว นิยมทัวร์ 4 เกาะออกจากอ่าวนาง",t:"ทัวร์เรือหางยาว ประมาณ 1,000–2,000 บาท/คน",h:"1 วัน"}];
+var cats=["ทั้งหมด","หาด","เกาะ","ธรรมชาติ","วัฒนธรรม"],cat="ทั้งหมด",sel=null,me=null,tab=0,navOn=false,view="",watch=null,hdg=null,mode=0,err=0,svg=document.getElementById("svg"),sh=document.getElementById("sh"),bd=document.getElementById("bd");
+var V0=[0,0,480,600],vb=V0.slice();
+function hav(a,b,c,d){var r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,h=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)*Math.sin(y/2);return 12742*Math.asin(Math.sqrt(h))}
+function toast(t){var e=document.getElementById("toast");e.textContent=t;e.className="toast on";setTimeout(function(){e.className="toast"},3500)}
+function draw(){
+var h='<rect x="-3000" y="-3000" width="6600" height="7000" fill="var(--sea)"/><polygon fill="var(--land)" stroke="var(--ln)" stroke-width="2" points="'+[[98.65,8.55],[99.45,8.55],[99.45,7.88],[99.3,7.85],[99.1,7.9],[98.95,8.0],[98.88,7.97],[98.83,7.99],[98.78,8.1],[98.74,8.3],[98.72,8.45]].map(function(p){return X(p[1])+","+Y(p[0])}).join(" ")+'"/>';
+h+='<ellipse cx="'+X(99.05)+'" cy="'+Y(7.62)+'" rx="14" ry="38" transform="rotate(-25 '+X(99.05)+' '+Y(7.62)+')" fill="var(--land)" stroke="var(--ln)" stroke-width="2"/><ellipse cx="'+X(98.77)+'" cy="'+Y(7.74)+'" rx="14" ry="20" fill="var(--land)" stroke="var(--ln)" stroke-width="2"/>';
+h+='<text x="340" y="150" fill="var(--mu)" font-size="14" font-style="italic">จ.กระบี่</text><text x="25" y="420" fill="var(--mu)" font-size="12" font-style="italic">ทะเลอันดามัน</text>';
+var k=vb[2]/480;if(me){var mx=X(me.lo),my=Y(me.la);h+='<circle class="pulse" cx="'+mx+'" cy="'+my+'" r="'+9*k+'"/><circle cx="'+mx+'" cy="'+my+'" r="'+8*k+'" fill="#2a6df4" stroke="#fff" stroke-width="'+3*k+'"/>'}if(navOn&&me&&sel){var t=cur();h+='<line x1="'+X(me.lo)+'" y1="'+Y(me.la)+'" x2="'+X(t.lo)+'" y2="'+Y(t.la)+'" stroke="#2a6df4" stroke-width="'+3.5*k+'" stroke-dasharray="'+9*k+' '+7*k+'" stroke-linecap="round"/>'}
+S.forEach(function(s){if(cat!="ทั้งหมด"&&s.c!=cat&&sel!=s.id)return;var x=X(s.lo),y=Y(s.la),r=(sel==s.id?17:14);
+h+='<g class="mk'+(sel==s.id?' on':'')+'" onclick="pick('+s.id+')"><circle class="pin" cx="'+x+'" cy="'+y+'" r="'+r*k+'"/><text class="e" x="'+x+'" y="'+(y+4.5*k)+'" style="font-size:'+13*k+'px">'+IC[s.c]+'</text><text class="l" x="'+(x+(r+3)*k)+'" y="'+(y+4*k)+'" style="font-size:'+11*k+'px;stroke-width:'+3*k+'px">'+s.n+'</text></g>'});
+svg.innerHTML=h;svg.setAttribute("viewBox",vb.join(" "))}
+function chips(){document.getElementById("chips").innerHTML=cats.map(function(c){return'<button class="'+(c==cat?'on':'')+'" onclick="setC(\''+c+'\')">'+(IC[c]||"🗺️")+' '+c+'</button>'}).join("")}
+function setC(c){cat=c;chips();draw()}
+function zoom(f,cx,cy){var w=vb[2]*f,h=vb[3]*f;if(w>=480){vb=V0.slice();return draw()}if(w<110)return;cx=cx==null?vb[0]+vb[2]/2:cx;cy=cy==null?vb[1]+vb[3]/2:cy;vb=[Math.max(-20,Math.min(500-w,cx-w/2)),Math.max(-20,Math.min(620-h,cy-h/2)),w,h];draw()}
+document.getElementById("zi").onclick=function(){zoom(.65)};document.getElementById("zo").onclick=function(){zoom(1.55)};
+function pr(r,ic){return r.map(function(x,i){return'<div class="pr"><i>'+ic[i]+'</i><span>'+x[0]+'</span><b>'+x[1]+(/\d/.test(x[1])?' ฿':'')+'</b></div>'}).join("")}
+function gm(q){return"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q)}
+function render(){var s=S.filter(function(x){return x.id==sel})[0];if(!s)return;if(view=="nav")return renderNav(s);var p=P[s.p],q=encodeURIComponent(s.n+" กระบี่"),o=me?"&origin="+me.la+","+me.lo:"";
+var km=me?hav(me.la,me.lo,s.la,s.lo):null,body="";
+if(tab==0){body='<p style="margin:4px 0">'+s.d+'</p><div class="stat"><div><b>'+(km!=null?km.toFixed(0)+' กม.':'—')+'</b>'+(km!=null?'จากคุณ':'กดปุ่ม 📍 ก่อน')+'</div><div><b>'+(km!=null?Math.round(km*1.4/45*60)+' นาที':'—')+'</b>ขับรถโดยประมาณ</div><div><b>'+s.h+'</b>เวลาที่ใช้เที่ยว</div></div><div class="tip">💡 '+s.t+'</div>'}
+else if(tab==1){body='<div class="n" style="margin:0 0 10px">ราคาห้องพักต่อคืน โซน'+p.a+'</div>'+pr(p.st,["🛏️","🏨","🌟"])+'<p class="n">เป็นราคาประมาณการ อาจเปลี่ยนตามฤดูกาลท่องเที่ยว</p>'}
+else{body='<div class="n" style="margin:0 0 10px">ราคาอาหารต่อคนต่อมื้อ โซน'+p.a+'</div>'+pr(p.fd,["🍜","🦐","🍷"])+'<p class="n">เป็นราคาประมาณการ ไม่รวมเครื่องดื่ม</p>'}
+var ex=tab==1?'<a class="btn" target="_blank" rel="noopener" href="'+gm("ที่พัก ใกล้ "+s.n+" กระบี่")+'">🏨 ดูที่พักจริง</a>':tab==2?'<a class="btn" target="_blank" rel="noopener" href="'+gm("ร้านอาหาร ใกล้ "+s.n+" กระบี่")+'">🍽️ ดูร้านจริง</a>':'<button class="btn" onclick="showMap()">🗺️ ดูบนแผนที่</button>';
+document.getElementById("shc").innerHTML='<div class="hd"><button class="cx" onclick="closeS()" aria-label="ปิด">✕</button><div class="ico">'+IC[s.c]+'</div><h2>'+s.n+'</h2><span class="tag">'+s.c+'</span><span class="tag">โซน'+p.a+'</span></div>'+
+'<div class="tabs">'+["ภาพรวม","🏨 ที่พัก","🍽️ อาหาร"].map(function(t,i){return'<button class="'+(i==tab?'on':'')+'" onclick="setT('+i+')">'+t+'</button>'}).join("")+'</div><div class="bd2">'+body+'</div>'+
+'<div class="ft">'+ex+'<button class="btn p" onclick="startNav()">🧭 นำทางเลย</button></div>'}
+function setT(i){tab=i;render()}
+function pick(id){sel=id;tab=0;view="";navOn=false;stopW();layout();var s=S.filter(function(x){return x.id==id})[0];vb=V0.slice();zoom(.6,X(s.lo),Y(s.la)+55);render();sh.classList.add("on");bd.classList.add("on")}
+function closeS(){sh.classList.remove("on");bd.classList.remove("on");sel=null;view="";navOn=false;stopW();layout();draw()}
+var M=[["🚗","รถยนต์",1.4/45],["🛵","มอเตอร์ไซค์",1.4/40],["🚶","เดิน",1.3/5]],DR=["เหนือ","ตะวันออกเฉียงเหนือ","ตะวันออก","ตะวันออกเฉียงใต้","ใต้","ตะวันตกเฉียงใต้","ตะวันตก","ตะวันตกเฉียงเหนือ"],bear=0;
+function cur(){return S.filter(function(x){return x.id==sel})[0]}
+function layout(){sh.classList.toggle("nav",view=="nav");bd.classList.toggle("clear",view=="nav")}
+function brg(a,b,c,d){var r=Math.PI/180,y=Math.sin((d-b)*r)*Math.cos(c*r),x=Math.cos(a*r)*Math.sin(c*r)-Math.sin(a*r)*Math.cos(c*r)*Math.cos((d-b)*r);return(Math.atan2(y,x)/r+360)%360}
+function fm(m){return m<60?Math.max(1,Math.round(m))+" นาที":Math.floor(m/60)+" ชม. "+Math.round(m%60)+" นาที"}
+function stopW(){if(watch!=null&&navigator.geolocation)navigator.geolocation.clearWatch(watch);watch=null;window.removeEventListener("deviceorientation",ori,true)}
+function ori(e){var h=e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.absolute&&e.alpha!=null?360-e.alpha:null);if(h!=null){var f=hdg==null;hdg=h;var a=document.getElementById("arw");if(a)a.style.transform="rotate("+(bear-hdg)+"deg)";if(f&&sel)renderNav(cur())}}
+function fitDraw(){var s=cur();if(!s)return;if(me){var x1=X(me.lo),y1=Y(me.la),x2=X(s.lo),y2=Y(s.la),w=Math.max(Math.abs(x1-x2)*1.6,Math.abs(y1-y2)*1.6*.8,110),h=w*1.25;vb=[(x1+x2)/2-w/2,(y1+y2)/2-h/2+h*.2,w,h];draw()}else{vb=V0.slice();zoom(.5,X(s.lo),Y(s.la)+60)}renderNav(s)}
+function showMap(){var s=cur();view="nav";navOn=false;layout();vb=V0.slice();zoom(.5,X(s.lo),Y(s.la)+60);renderNav(s)}
+function back(){var s=cur();navOn=false;view="";stopW();layout();vb=V0.slice();zoom(.6,X(s.lo),Y(s.la)+55);render()}
+function setM(i){mode=i;renderNav(cur())}
+function startNav(){view="nav";navOn=true;err=0;layout();try{if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission)DeviceOrientationEvent.requestPermission().catch(function(){})}catch(e){}
+window.addEventListener("deviceorientation",ori,true);
+if(navigator.geolocation&&watch==null)watch=navigator.geolocation.watchPosition(function(r){me={la:r.coords.latitude,lo:r.coords.longitude};document.getElementById("loc").className="loc ok";fitDraw()},function(){err=1;renderNav(cur())},{enableHighAccuracy:true,maximumAge:3000});
+fitDraw()}
+function renderNav(s){var km=me?hav(me.la,me.lo,s.la,s.lo):null,b=me?brg(me.la,me.lo,s.la,s.lo):0,q=encodeURIComponent(s.n+" กระบี่"),o=me?"&origin="+me.la+","+me.lo:"",body="";bear=b;
+var ext='<a class="lk" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='+q+o+'&travelmode=driving">เปิดเส้นทางตามถนนจริงใน Google Maps ↗</a>';
+if(!navOn){body='<p style="margin:4px 0 10px">'+s.d+'</p><button class="btn p" style="width:100%" onclick="startNav()">🧭 เริ่มนำทางไปที่นี่</button>'}
+else if(!me){body='<p style="margin:6px 0">'+(err?"ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง กรุณาเปิดสิทธิ์ตำแหน่งของเบราว์เซอร์":"⏳ กำลังหาตำแหน่งของคุณ...")+'</p>'+ext}
+else if(km<.05){body='<div class="big" style="margin:8px 0">🎉 ถึงที่หมายแล้ว!</div>'}
+else{body='<div class="cmp"><div class="arw" id="arw" style="transform:rotate('+(b-(hdg||0))+'deg)">↑</div><div><div class="big">'+(km<1?Math.round(km*1000)+" ม.":km.toFixed(1)+" กม.")+'</div><div class="n" style="margin:0">ไปทางทิศ'+DR[Math.round(b/45)%8]+' · ประมาณ '+fm(km*M[mode][2]*60)+'</div></div></div><div class="md">'+M.map(function(m,i){return'<button class="'+(i==mode?'on':'')+'" onclick="setM('+i+')">'+m[0]+' '+m[1]+'</button>'}).join("")+'</div>'+(hdg==null?'<p class="n">ลูกศรชี้ตามทิศเหนือของแผนที่ (บนมือถือจะหมุนตามเข็มทิศเมื่ออนุญาตเซนเซอร์)</p>':'')+(s.c=="เกาะ"?'<p class="n">🚤 ปลายทางเป็นเกาะ ต้องเดินทางโดยเรือ สอบถามท่าเรือและรอบเรือก่อนเดินทาง</p>':'')+(km>40?'<p class="n">📏 อยู่ไกลจากกระบี่ เวลาเป็นค่าประมาณ ควรตรวจสอบเส้นทางจริงใน Google Maps</p>':'')+ext}
+document.getElementById("shc").innerHTML='<div class="nvh"><button class="bk" onclick="back()" aria-label="กลับ">←</button><div><b>'+s.n+'</b><div class="n" style="margin:0">'+(navOn?'🧭 กำลังนำทาง':'📍 ตำแหน่งบนแผนที่')+'</div></div><button class="cx2" onclick="closeS()" aria-label="ปิด">✕</button></div><div class="nvb">'+body+'</div>'}
+bd.onclick=closeS;document.addEventListener("keydown",function(e){if(e.key=="Escape")closeS()});
+document.getElementById("loc").onclick=function(){var b=this;if(!navigator.geolocation){toast("อุปกรณ์ไม่รองรับระบุตำแหน่ง");return}toast("กำลังค้นหาตำแหน่ง...");
+navigator.geolocation.getCurrentPosition(function(r){me={la:r.coords.latitude,lo:r.coords.longitude};b.className="loc ok";toast("✅ ได้ตำแหน่งแล้ว");draw();if(sel)render()},function(){toast("ไม่ได้รับอนุญาต แต่กด นำทางเลย แล้ว Google Maps จะใช้ตำแหน่งปัจจุบันให้")},{enableHighAccuracy:true,timeout:10000})};
+chips();draw();
+</script></body></html>
