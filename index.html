@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Krabi Smart Guide - ระบบนำเที่ยว 10 พิกัดสุดฮิตจังหวัดกระบี่</title>
+  <title>Krabi Smart Guide - ระบบนำเที่ยวจังหวัดกระบี่ (รองรับโหมดแอดมิน)</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Kanit -->
@@ -20,9 +20,9 @@
       background-color: #f0f9ff;
     }
     .glass-card {
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.7);
     }
     .place-card.active {
       border: 3px solid #0284c7;
@@ -46,34 +46,64 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #0284c7;
     }
+    .modal-backdrop {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+    }
   </style>
 </head>
 <body class="text-slate-800">
 
-  <!-- HERO HEADER (Infographic Banner) -->
-  <header class="relative bg-gradient-to-r from-cyan-700 via-sky-600 to-teal-500 text-white pb-8 pt-6 px-4 shadow-lg overflow-hidden">
+  <!-- TOP ADMIN BAR & HERO HEADER -->
+  <header class="relative bg-gradient-to-r from-cyan-700 via-sky-600 to-teal-500 text-white pb-8 pt-4 px-4 shadow-lg overflow-hidden">
     <div class="max-w-7xl mx-auto relative z-10">
+      
+      <!-- Top Bar: Brand & Admin Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-white/20">
+        <span class="inline-flex items-center bg-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+          <i class="fa-solid fa-compass mr-1.5"></i> Krabi Smart Travel & ลุงเจี๊ยบ
+        </span>
+
+        <!-- Admin Controls -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span id="admin-status-badge" class="hidden bg-amber-400 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-xl shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-shield-halved"></i> โหมดแอดมิน (ปลดล็อกแล้ว)
+          </span>
+
+          <button id="btn-add-place" onclick="openPlaceModal()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
+            <i class="fa-solid fa-plus"></i> เพิ่มสถานที่ใหม่
+          </button>
+
+          <button id="btn-reset-data" onclick="resetDefaultData()" class="hidden bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-left"></i> รีเซ็ตค่าเริ่มต้น
+          </button>
+
+          <button id="btn-admin-toggle" onclick="toggleAdminAuth()" class="bg-slate-900/70 hover:bg-slate-900 text-white text-xs font-medium px-3.5 py-1.5 rounded-xl border border-white/25 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-lock" id="admin-lock-icon"></i>
+            <span id="admin-btn-text">โหมดแอดมิน</span>
+          </button>
+        </div>
+      </div>
+
       <div class="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <span class="inline-block bg-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm mb-2">
-            <i class="fa-solid fa-compass mr-1"></i> Krabi Smart Travel ไปกะ "ลุงเจี๊ยบ"
-          </span>
           <h1 class="text-3xl md:text-4xl font-bold tracking-tight">
-          "ลุงเจี๊ยบ😍" นำเที่ยว รวม <span class="text-amber-300 text-4xl md:text-5xl">10</span> ที่เที่ยวกระบี่ <span class="underline decoration-pink-400">สุดฮิตห้ามพลาด</span>
+           "ไปกะลุงเจี๊ยบ😘"  รวม <span id="hero-total-count" class="text-amber-300 text-4xl md:text-5xl">10</span> ที่เที่ยวกระบี่ <span class="underline decoration-pink-400">สุดฮิตห้ามพลาด</span>
           </h1>
           <p class="text-sky-100 mt-1 text-sm md:text-base">
-            คลิกเลือกสถานที่เพื่อนำทางอัตโนมัติ ดูข้อมูลอินโฟกราฟิก ที่พัก และร้านอาหารพร้อมราคาชัดเจน
+            คลิกเลือกสถานที่เพื่อนำทางอัตโนมัติ ดูข้อมูลอินโฟกราฟิก ที่พัก ร้านอาหาร พร้อมระบบจัดการสำหรับแอดมิน
           </p>
         </div>
+
         <!-- Quick Infographic Summary Pills -->
         <div class="grid grid-cols-3 gap-2 md:gap-3 bg-white/15 backdrop-blur-md p-3 rounded-2xl border border-white/20 text-center w-full md:w-auto">
           <div class="px-3 py-1">
-            <div class="text-2xl font-bold text-amber-300">10</div>
+            <div id="stat-total-places" class="text-2xl font-bold text-amber-300">10</div>
             <div class="text-xs text-sky-100">แลนด์มาร์คฮิต</div>
           </div>
           <div class="px-3 py-1 border-x border-white/20">
-            <div class="text-2xl font-bold text-emerald-300">2 อำเภอ</div>
-            <div class="text-xs text-sky-100">เมือง & คลองท่อม</div>
+            <div class="text-2xl font-bold text-emerald-300">GPS</div>
+            <div class="text-xs text-sky-100">นำทางอัตโนมัติ</div>
           </div>
           <div class="px-3 py-1">
             <div class="text-2xl font-bold text-pink-300">฿650+</div>
@@ -85,22 +115,22 @@
       <!-- Search & Filter Controls -->
       <div class="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
         <div class="flex flex-wrap gap-2 w-full sm:w-auto" id="filter-buttons">
-          <button onclick="filterPlaces('all')" class="filter-btn active bg-white text-sky-700 font-medium px-4 py-1.5 rounded-xl text-sm shadow transition">
-            ทั้งหมด (10)
+          <button onclick="filterPlaces('all', this)" class="filter-btn active bg-white text-sky-700 font-medium px-4 py-1.5 rounded-xl text-sm shadow transition">
+            ทั้งหมด (<span id="count-all">10</span>)
           </button>
-          <button onclick="filterPlaces('อ.เมืองกระบี่')" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
-            <i class="fa-solid fa-location-dot mr-1 text-pink-400"></i> อ.เมืองกระบี่ (8)
+          <button onclick="filterPlaces('อ.เมืองกระบี่', this)" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
+            <i class="fa-solid fa-location-dot mr-1 text-pink-400"></i> อ.เมืองกระบี่ (<span id="count-mueang">8</span>)
           </button>
-          <button onclick="filterPlaces('อ.คลองท่อม')" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
-            <i class="fa-solid fa-tree mr-1 text-emerald-300"></i> อ.คลองท่อม (2)
+          <button onclick="filterPlaces('อ.คลองท่อม', this)" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
+            <i class="fa-solid fa-tree mr-1 text-emerald-300"></i> อ.คลองท่อม (<span id="count-klongthom">2</span>)
           </button>
-          <button onclick="filterPlaces('เกาะ/ทะเล')" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
-            <i class="fa-solid fa-Anchor mr-1 text-amber-300"></i> หมู่เกาะ/ทางเรือ (5)
+          <button onclick="filterPlaces('เกาะ/ทะเล', this)" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
+            <i class="fa-solid fa-anchor mr-1 text-amber-300"></i> หมู่เกาะ/ทางเรือ (<span id="count-island">5</span>)
           </button>
         </div>
         <div class="relative w-full sm:w-64">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400"></i>
-          <input type="text" id="search-input" oninput="searchPlaces(this.value)" placeholder="ค้นหาสถานที่, กิจกรรม..." 
+          <input type="text" id="search-input" oninput="applyFilterAndSearch()" placeholder="ค้นหาสถานที่, กิจกรรม..." 
             class="w-full pl-10 pr-4 py-1.5 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
         </div>
       </div>
@@ -110,18 +140,18 @@
   <!-- MAIN CONTENT LAYOUT -->
   <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
     
-    <!-- LEFT COLUMN: 10 PLACES GRID (5 cols on lg) -->
+    <!-- LEFT COLUMN: PLACES GRID (5 cols on lg) -->
     <section class="lg:col-span-5 flex flex-col gap-4">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
           <span class="w-2.5 h-6 bg-sky-600 rounded-full inline-block"></span>
-          เลือกสถานที่ท่องเที่ยว (คลิกเพื่อดูรายละเอียด)
+          เลือกสถานที่ท่องเที่ยว
         </h2>
         <span class="text-xs text-slate-500" id="count-label">แสดง 10 สถานที่</span>
       </div>
 
       <!-- Cards Container -->
-      <div id="places-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[820px] overflow-y-auto pr-1 custom-scrollbar">
+      <div id="places-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[840px] overflow-y-auto pr-1 custom-scrollbar">
         <!-- Rendered by JS -->
       </div>
     </section>
@@ -129,99 +159,126 @@
     <!-- RIGHT COLUMN: INTERACTIVE INFOGRAPHIC DETAIL, MAP, HOTELS & RESTAURANTS (7 cols on lg) -->
     <section class="lg:col-span-7 flex flex-col gap-5" id="detail-panel">
       
-      <!-- Active Place Header + Navigation CTA -->
-      <div class="glass-card rounded-2xl p-5 shadow-md border-t-4 border-sky-500">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <div class="flex items-center gap-2">
-              <span id="detail-badge" class="bg-pink-600 text-white font-bold px-3 py-0.5 rounded-full text-sm">#1</span>
-              <span id="detail-district" class="text-xs font-medium bg-sky-100 text-sky-700 px-2.5 py-1 rounded-full">
-                <i class="fa-solid fa-location-dot mr-1"></i>อ.เมืองกระบี่
-              </span>
-              <span id="detail-type" class="text-xs font-medium bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">
-                ชายหาด & หน้าผาหินปูน
-              </span>
-            </div>
-            <h2 id="detail-title" class="text-2xl md:text-3xl font-bold text-slate-800 mt-1">ไร่เลย์บีช (Railay Beach)</h2>
-            <p id="detail-desc" class="text-slate-600 text-sm mt-1">
-              หาดสวย น้ำใส บรรยากาศเงียบสงบ ล้อมรอบด้วยหน้าผาหินปูน เหมาะกับการพักผ่อน
-            </p>
-          </div>
+      <!-- Active Place Header + Preview Banner + Navigation CTA -->
+      <div class="glass-card rounded-2xl overflow-hidden shadow-md border-t-4 border-sky-500">
+        
+        <!-- Large Hero Image Banner with Quick Edit Image Button -->
+        <div class="relative h-52 sm:h-64 w-full bg-slate-200 overflow-hidden group">
+          <img id="detail-image" src="" alt="ภาพสถานที่" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
+          
+          <!-- Quick Change Image Button (Accessible anytime, prompts PIN 2260 if not unlocked) -->
+          <button onclick="requestEditImage(activePlaceId)" 
+            class="absolute top-3 right-3 bg-white/90 hover:bg-white text-slate-800 text-xs font-semibold px-3 py-1.5 rounded-xl shadow-md transition flex items-center gap-1.5">
+            <i class="fa-solid fa-camera text-sky-600"></i> แก้ไขรูปภาพ
+          </button>
 
-          <!-- Instant Auto-Navigate Buttons -->
-          <div class="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
-            <a id="nav-google-btn" href="#" target="_blank" 
-              class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm">
-              <i class="fa-solid fa-location-arrow animate-pulse"></i> นำทางทันที (Google Maps)
-            </a>
-            <button onclick="locateUserAndRoute()" 
-              class="bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-medium px-4 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
-              <i class="fa-solid fa-crosshairs"></i> คำนวณระยะทางจากตำแหน่งของฉัน
+          <!-- Admin Edit / Delete Full Place Buttons -->
+          <div id="detail-admin-actions" class="hidden absolute top-3 left-3 flex items-center gap-2">
+            <button onclick="openPlaceModal(activePlaceId)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-xl shadow-md transition flex items-center gap-1">
+              <i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูล
+            </button>
+            <button onclick="deletePlace(activePlaceId)" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-md transition flex items-center gap-1">
+              <i class="fa-solid fa-trash"></i> ลบ
             </button>
           </div>
-        </div>
 
-        <!-- INFOGRAPHIC STATS BAR -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-          <div class="bg-sky-50/80 p-3 rounded-xl border border-sky-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-sky-500 text-white flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-clock"></i>
-            </div>
+          <div class="absolute bottom-3 left-4 right-4 flex flex-wrap items-end justify-between gap-2 text-white">
             <div>
-              <div class="text-[11px] text-slate-500">เวลาแนะนำ</div>
-              <div id="info-besttime" class="text-xs font-bold text-slate-800">08:00 - 18:00 น.</div>
-            </div>
-          </div>
-
-          <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-ship"></i>
-            </div>
-            <div>
-              <div class="text-[11px] text-slate-500">การเดินทาง</div>
-              <div id="info-transport" class="text-xs font-bold text-slate-800">เรือหางยาว 15 นาที</div>
-            </div>
-          </div>
-
-          <div class="bg-emerald-50/80 p-3 rounded-xl border border-emerald-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-ticket"></i>
-            </div>
-            <div>
-              <div class="text-[11px] text-slate-500">ค่าธรรมเนียม/เรือ</div>
-              <div id="info-fee" class="text-xs font-bold text-emerald-700">เรือไป-กลับ ฿200</div>
-            </div>
-          </div>
-
-          <div class="bg-pink-50/80 p-3 rounded-xl border border-pink-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-pink-500 text-white flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-fire"></i>
-            </div>
-            <div>
-              <div class="text-[11px] text-slate-500">ความนิยม</div>
-              <div id="info-rating" class="text-xs font-bold text-pink-600">4.9 / 5.0 (สูงมาก)</div>
+              <div class="flex items-center gap-2 mb-1">
+                <span id="detail-badge" class="bg-pink-600 text-white font-bold px-3 py-0.5 rounded-full text-xs">#1</span>
+                <span id="detail-district" class="text-xs font-medium bg-sky-500/90 text-white px-2.5 py-0.5 rounded-full">
+                  <i class="fa-solid fa-location-dot mr-1"></i>อ.เมืองกระบี่
+                </span>
+                <span id="detail-type" class="text-xs font-medium bg-emerald-500/90 text-white px-2.5 py-0.5 rounded-full">
+                  ชายหาด
+                </span>
+              </div>
+              <h2 id="detail-title" class="text-2xl md:text-3xl font-bold drop-shadow">ไร่เลย์บีช (Railay Beach)</h2>
             </div>
           </div>
         </div>
 
-        <!-- Infographic Budget Breakdown Bar -->
-        <div class="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
-          <div class="flex items-center justify-between text-xs mb-1.5">
-            <span class="font-semibold text-slate-700">
-              <i class="fa-solid fa-chart-pie text-sky-600 mr-1"></i> อินโฟกราฟิกประมาณการค่าใช้จ่ายต่อคน (1 วัน)
-            </span>
-            <span id="budget-total" class="font-bold text-sky-700 text-sm">เฉลี่ย ฿1,500 - ฿3,200 / วัน</span>
+        <div class="p-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <p id="detail-desc" class="text-slate-600 text-sm leading-relaxed flex-1">
+              หาดสวย น้ำใส บรรยากาศเงียบสงบ ล้อมรอบด้วยหน้าผาหินปูน เหมาะกับการพักผ่อน
+            </p>
+
+            <!-- Instant Auto-Navigate Buttons -->
+            <div class="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
+              <a id="nav-google-btn" href="#" target="_blank" 
+                class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-location-arrow animate-pulse"></i> นำทางทันที (Google Maps)
+              </a>
+              <button onclick="locateUserAndRoute()" 
+                class="bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-medium px-4 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
+                <i class="fa-solid fa-crosshairs"></i> คำนวณระยะทางจากตำแหน่งฉัน
+              </button>
+            </div>
           </div>
-          <!-- Progress Visual Bar -->
-          <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
-            <div id="bar-stay" class="bg-indigo-500 h-full transition-all duration-500" style="width: 55%" title="ที่พัก"></div>
-            <div id="bar-food" class="bg-amber-400 h-full transition-all duration-500" style="width: 25%" title="อาหาร"></div>
-            <div id="bar-travel" class="bg-emerald-500 h-full transition-all duration-500" style="width: 20%" title="เดินทาง/ทัวร์"></div>
+
+          <!-- INFOGRAPHIC STATS BAR -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            <div class="bg-sky-50/80 p-3 rounded-xl border border-sky-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-sky-500 text-white flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div>
+                <div class="text-[11px] text-slate-500">เวลาแนะนำ</div>
+                <div id="info-besttime" class="text-xs font-bold text-slate-800">08:00 - 18:00 น.</div>
+              </div>
+            </div>
+
+            <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-ship"></i>
+              </div>
+              <div>
+                <div class="text-[11px] text-slate-500">การเดินทาง</div>
+                <div id="info-transport" class="text-xs font-bold text-slate-800">เรือหางยาว 15 นาที</div>
+              </div>
+            </div>
+
+            <div class="bg-emerald-50/80 p-3 rounded-xl border border-emerald-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-ticket"></i>
+              </div>
+              <div>
+                <div class="text-[11px] text-slate-500">ค่าธรรมเนียม/เรือ</div>
+                <div id="info-fee" class="text-xs font-bold text-emerald-700">เรือไป-กลับ ฿200</div>
+              </div>
+            </div>
+
+            <div class="bg-pink-50/80 p-3 rounded-xl border border-pink-100 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-pink-500 text-white flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-fire"></i>
+              </div>
+              <div>
+                <div class="text-[11px] text-slate-500">ความนิยม</div>
+                <div id="info-rating" class="text-xs font-bold text-pink-600">4.9 / 5.0</div>
+              </div>
+            </div>
           </div>
-          <div class="flex justify-between text-[11px] text-slate-500 mt-1.5">
-            <span><i class="fa-solid fa-circle text-indigo-500 mr-1"></i>ค่าที่พัก (~55%)</span>
-            <span><i class="fa-solid fa-circle text-amber-400 mr-1"></i>ค่าอาหาร (~25%)</span>
-            <span><i class="fa-solid fa-circle text-emerald-500 mr-1"></i>ค่าเดินทาง/ค่าเข้า (~20%)</span>
+
+          <!-- Infographic Budget Breakdown Bar -->
+          <div class="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="font-semibold text-slate-700">
+                <i class="fa-solid fa-chart-pie text-sky-600 mr-1"></i> อินโฟกราฟิกประมาณการค่าใช้จ่ายต่อคน (1 วัน)
+              </span>
+              <span id="budget-total" class="font-bold text-sky-700 text-sm">เฉลี่ย ฿1,500 - ฿3,200 / วัน</span>
+            </div>
+            <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+              <div id="bar-stay" class="bg-indigo-500 h-full transition-all duration-500" style="width: 55%"></div>
+              <div id="bar-food" class="bg-amber-400 h-full transition-all duration-500" style="width: 25%"></div>
+              <div id="bar-travel" class="bg-emerald-500 h-full transition-all duration-500" style="width: 20%"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-500 mt-1.5">
+              <span><i class="fa-solid fa-circle text-indigo-500 mr-1"></i>ค่าที่พัก (~55%)</span>
+              <span><i class="fa-solid fa-circle text-amber-400 mr-1"></i>ค่าอาหาร (~25%)</span>
+              <span><i class="fa-solid fa-circle text-emerald-500 mr-1"></i>ค่าเดินทาง/ค่าเข้า (~20%)</span>
+            </div>
           </div>
         </div>
       </div>
@@ -231,7 +288,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
             <i class="fa-solid fa-map-location-dot text-sky-600 text-base"></i>
-            แผนที่พิกัดจริง & จุดใกล้เคียง (คลิกมาร์กเกอร์เพื่อดูชื่อ)
+            แผนที่พิกัดจริง & นำทางอัตโนมัติ (คลิกมาร์กเกอร์เพื่อดูชื่อ)
           </h3>
           <span id="distance-status" class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
             พิกัด GPS: <span id="gps-coords">8.0119, 98.8379</span>
@@ -254,9 +311,7 @@
             </h3>
             <span class="text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-medium">ราคา/คืน</span>
           </div>
-          <div id="hotels-list" class="space-y-2.5">
-            <!-- Populated by JS -->
-          </div>
+          <div id="hotels-list" class="space-y-2.5"></div>
         </div>
 
         <!-- Restaurants / Cafes -->
@@ -270,9 +325,7 @@
             </h3>
             <span class="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-medium">ราคา/ท่าน</span>
           </div>
-          <div id="restaurants-list" class="space-y-2.5">
-            <!-- Populated by JS -->
-          </div>
+          <div id="restaurants-list" class="space-y-2.5"></div>
         </div>
 
       </div>
@@ -280,15 +333,243 @@
     </section>
   </main>
 
+  <!-- MODAL 1: ADMIN PIN AUTHENTICATION (PIN: 2260) -->
+  <div id="pin-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center">
+      <div class="w-14 h-14 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl mx-auto mb-3">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800">ยืนยันสิทธิ์แอดมิน</h3>
+      <p class="text-xs text-slate-500 mt-1">กรอกรหัสผ่านแอดมินเพื่อแก้ไขรูปภาพหรือเพิ่มสถานที่ท่องเที่ยวใหม่</p>
+      
+      <input type="password" id="pin-input" maxlength="6" placeholder="กรอกรหัสแอดมิน (2260)" 
+        onkeydown="if(event.key==='Enter') verifyAdminPin()"
+        class="mt-4 w-full text-center tracking-widest text-xl font-bold py-2.5 px-4 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-sky-500">
+      <p id="pin-error" class="text-xs text-rose-600 mt-1.5 hidden">รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง</p>
+
+      <div class="flex gap-2 mt-5">
+        <button onclick="closePinModal()" class="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition">
+          ยกเลิก
+        </button>
+        <button onclick="verifyAdminPin()" class="flex-1 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold shadow transition">
+          ยืนยันรหัส
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: QUICK IMAGE EDITOR MODAL -->
+  <div id="image-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-image text-sky-600"></i> แก้ไขรูปภาพสถานที่ท่องเที่ยว
+        </h3>
+        <button onclick="closeImageModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <div class="text-xs font-semibold text-sky-700 bg-sky-50 px-3 py-1.5 rounded-lg" id="img-modal-place-name">
+          สถานที่: ไร่เลย์บีช
+        </div>
+
+        <!-- Preview Box -->
+        <div class="h-44 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+          <img id="img-preview-box" src="" alt="Preview" class="w-full h-full object-cover">
+        </div>
+
+        <!-- Option 1: Upload File from Device -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">
+            1. อัปโหลดไฟล์รูปภาพจากเครื่อง (ย่อขนาดอัตโนมัติ)
+          </label>
+          <input type="file" id="img-file-input" accept="image/*" onchange="handleImageFileUpload(event, 'img-url-input', 'img-preview-box')"
+            class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer border border-slate-200 rounded-xl p-1">
+        </div>
+
+        <!-- Option 2: Paste Direct Image URL -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">
+            2. หรือวางลิงก์รูปภาพ (Image URL)
+          </label>
+          <input type="text" id="img-url-input" oninput="document.getElementById('img-preview-box').src = this.value"
+            placeholder="https://images.unsplash.com/..." 
+            class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500">
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-6">
+        <button onclick="closeImageModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition">
+          ยกเลิก
+        </button>
+        <button onclick="saveQuickImage()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow transition">
+          <i class="fa-solid fa-floppy-disk mr-1"></i> บันทึกรูปภาพ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ADD / EDIT FULL PLACE MODAL (ADMIN) -->
+  <div id="place-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 id="place-modal-title" class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-map-pin text-emerald-600"></i> เพิ่มสถานที่ท่องเที่ยวใหม่
+        </h3>
+        <button onclick="closePlaceModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Modal Scrollable Body -->
+      <div class="p-6 overflow-y-auto custom-scrollbar space-y-5 text-xs sm:text-sm">
+        <input type="hidden" id="form-place-id">
+
+        <!-- Basic Info Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ชื่อสถานที่ท่องเที่ยว *</label>
+            <input type="text" id="form-name" placeholder="เช่น หาดทับแขก (Tubkaek Beach)" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">อำเภอ/โซน *</label>
+              <select id="form-district" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500">
+                <option value="อ.เมืองกระบี่">อ.เมืองกระบี่</option>
+                <option value="อ.คลองท่อม">อ.คลองท่อม</option>
+                <option value="อ.เกาะลันตา">อ.เกาะลันตา</option>
+                <option value="อ.อ่าวลึก">อ.อ่าวลึก</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">หมวดหมู่ตัวกรอง</label>
+              <select id="form-category" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500">
+                <option value="อ.เมืองกระบี่">ที่เที่ยวทางบก (อ.เมือง)</option>
+                <option value="เกาะ/ทะเล">หมู่เกาะ/ทางเรือ</option>
+                <option value="อ.คลองท่อม">ธรรมชาติ (คลองท่อม)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ป้ายกำกับเด่น (Tag)</label>
+            <input type="text" id="form-tag" placeholder="เช่น จุดชมพระอาทิตย์ตก" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">พิกัดละติจูด (Latitude) *</label>
+            <input type="number" step="any" id="form-lat" placeholder="8.0321" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">พิกัดลองจิจูด (Longitude) *</label>
+            <input type="number" step="any" id="form-lng" placeholder="98.8224" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">คำอธิบายสถานที่ *</label>
+          <textarea id="form-desc" rows="2" placeholder="บรรยายจุดเด่น กิจกรรม และบรรยากาศ..." class="w-full px-3 py-2 border border-slate-200 rounded-xl"></textarea>
+        </div>
+
+        <!-- Infographic Details -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-sky-50/60 p-3.5 rounded-xl border border-sky-100">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1 text-xs">เวลาแนะนำ</label>
+            <input type="text" id="form-besttime" placeholder="08:00 - 18:00 น." class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1 text-xs">การเดินทาง</label>
+            <input type="text" id="form-transport" placeholder="รถยนต์ 20 นาที" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1 text-xs">ค่าธรรมเนียม/เรือ</label>
+            <input type="text" id="form-fee" placeholder="เข้าชมฟรี" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1 text-xs">งบประมาณเฉลี่ย/วัน</label>
+            <input type="text" id="form-budget" placeholder="฿1,200 - ฿2,800 / วัน" class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white">
+          </div>
+        </div>
+
+        <!-- Image Upload / URL in Form -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+          <div class="h-28 w-full rounded-lg overflow-hidden bg-slate-200 border">
+            <img id="form-img-preview" src="https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=700&q=80" class="w-full h-full object-cover">
+          </div>
+          <div class="sm:col-span-2 space-y-2">
+            <label class="block font-semibold text-slate-700 text-xs">รูปภาพสถานที่ (อัปโหลดไฟล์ หรือใส่ลิงก์ URL)</label>
+            <input type="file" accept="image/*" onchange="handleImageFileUpload(event, 'form-image', 'form-img-preview')"
+              class="block w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-100 file:text-sky-700">
+            <input type="text" id="form-image" oninput="document.getElementById('form-img-preview').src = this.value"
+              placeholder="วางลิงก์รูปภาพ https://..." class="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white">
+          </div>
+        </div>
+
+        <!-- Nearby Hotels (2 Main Items for Form Simplicity) -->
+        <div class="border-t border-slate-200 pt-4">
+          <h4 class="font-bold text-indigo-700 mb-2 flex items-center gap-1.5 text-xs sm:text-sm">
+            <i class="fa-solid fa-bed"></i> ข้อมูลที่พักใกล้เคียงพร้อมราคา (แสดงในอินโฟกราฟิก)
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+            <input type="text" id="form-h1-name" placeholder="ชื่อที่พัก 1 (เช่น Tubkaak Resort)" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-h1-dist" placeholder="ระยะทาง (เช่น ติดหาด)" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-h1-price" placeholder="ราคา (เช่น ฿2,500 - ฿4,500)" class="px-3 py-1.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input type="text" id="form-h2-name" placeholder="ชื่อที่พัก 2" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-h2-dist" placeholder="ระยะทาง (เช่น ห่าง 300 ม.)" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-h2-price" placeholder="ราคา (เช่น ฿950 - ฿1,800)" class="px-3 py-1.5 border rounded-lg text-xs">
+          </div>
+        </div>
+
+        <!-- Nearby Restaurants -->
+        <div class="border-t border-slate-200 pt-4">
+          <h4 class="font-bold text-amber-700 mb-2 flex items-center gap-1.5 text-xs sm:text-sm">
+            <i class="fa-solid fa-utensils"></i> ข้อมูลร้านอาหารใกล้เคียงพร้อมราคา
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+            <input type="text" id="form-r1-name" placeholder="ชื่อร้านอาหาร 1" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-r1-spec" placeholder="เมนูแนะนำ (เช่น ซีฟู้ดสด)" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-r1-price" placeholder="ราคา (เช่น ฿150 - ฿400)" class="px-3 py-1.5 border rounded-lg text-xs">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <input type="text" id="form-r2-name" placeholder="ชื่อร้านอาหาร 2" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-r2-spec" placeholder="เมนูแนะนำ (เช่น อาหารใต้)" class="px-3 py-1.5 border rounded-lg text-xs">
+            <input type="text" id="form-r2-price" placeholder="ราคา (เช่น ฿80 - ฿250)" class="px-3 py-1.5 border rounded-lg text-xs">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+        <button onclick="closePlaceModal()" class="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium transition">
+          ยกเลิก
+        </button>
+        <button onclick="savePlaceForm()" class="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow transition">
+          <i class="fa-solid fa-check mr-1"></i> บันทึกข้อมูลสถานที่
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer class="max-w-7xl mx-auto px-4 py-6 text-center text-xs text-slate-500 border-t border-slate-200/70 mt-4">
-    ระบบเว็บแอปพลิเคชันนำเที่ยวจังหวัดกระบี่ • ออกแบบในรูปแบบ Interactive Infographic พร้อมพิกัดนำทางอัตโนมัติ
+    ระบบเว็บแอปพลิเคชันนำเที่ยวจังหวัดกระบี่ • รองรับการแก้ไขรูปภาพและเพิ่มสถานที่ใหม่โดยแอดมิน (PIN: 2260)
   </footer>
 
   <!-- APPLICATION DATA & LOGIC -->
   <script>
-    // ข้อมูลทั้ง 10 สถานที่ตามภาพอินโฟกราฟิก พร้อมพิกัด GPS ที่พัก และร้านอาหารใกล้เคียง
-    const krabiPlaces = [
+    const ADMIN_PIN = "2260";
+    const STORAGE_KEY = "krabi_smart_places_v2";
+
+    // ข้อมูลเริ่มต้นทั้ง 10 สถานที่ตามภาพอินโฟกราฟิก
+    const defaultKrabiPlaces = [
       {
         id: 1,
         name: "ไร่เลย์บีช (Railay Beach)",
@@ -392,7 +673,7 @@
           { name: "Diamond Cave Resort", dist: "ไร่เลย์ตะวันออก 500 ม.", rating: "4.1", price: "฿1,100 - ฿1,900", type: "ประหยัดคุ้มค่า" }
         ],
         restaurants: [
-          { name: "เรือขายอาหารริมหาดถ้ำพระนาง (Boat Noodle)", specialty: "ส้มตำ ไก่ย่าง ผัดไทย สมูทตี้", dist: "จอดเรียงริมหาดถ้ำพระนาง", price: "฿80 - ฿180" },
+          { name: "เรือขายอาหารริมหาดถ้ำพระนาง", specialty: "ส้มตำ ไก่ย่าง ผัดไทย สมูทตี้", dist: "จอดเรียงริมหาดถ้ำพระนาง", price: "฿80 - ฿180" },
           { name: "Krua Phranang (Rayavadee)", specialty: "อาหารไทยพรีเมียมวิวทะเล", dist: "หาดพระนาง", price: "฿700 - ฿1,500" },
           { name: "Tew Lay Bar", specialty: "พิซซ่าเตาถ่าน & น้ำผลไม้ปั่น", dist: "ปลายหาดไร่เลย์ตะวันออก", price: "฿150 - ฿350" }
         ]
@@ -435,7 +716,7 @@
         lng: 99.2669,
         image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=700&q=80",
         bestTime: "08:30 - 15:30 น.",
-        transport: "รถยนต์ 50 นาที (ใกล้กับน้ำตกร้อน 7 กม.)",
+        transport: "รถยนต์ 50 นาที (ใกล้น้ำตกร้อน 7 กม.)",
         fee: "คนไทย ฿30 / ต่างชาติ ฿400",
         rating: "4.8 / 5.0",
         budgetRange: "฿800 - ฿1,800 / วัน",
@@ -561,9 +842,47 @@
       }
     ];
 
+    let krabiPlaces = [];
     let activePlaceId = 1;
     let currentFilter = 'all';
+    let isAdmin = false;
+    let pendingAdminCallback = null;
+    let editingImagePlaceId = null;
     let map, markers = {};
+
+    // Load Data from LocalStorage or Fallback to Default
+    function loadPlacesData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          krabiPlaces = JSON.parse(saved);
+        } catch (e) {
+          krabiPlaces = JSON.parse(JSON.stringify(defaultKrabiPlaces));
+        }
+      } else {
+        krabiPlaces = JSON.parse(JSON.stringify(defaultKrabiPlaces));
+      }
+      updateHeaderCounts();
+    }
+
+    function savePlacesData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(krabiPlaces));
+      updateHeaderCounts();
+    }
+
+    function updateHeaderCounts() {
+      const total = krabiPlaces.length;
+      const mueang = krabiPlaces.filter(p => p.district === 'อ.เมืองกระบี่').length;
+      const klongthom = krabiPlaces.filter(p => p.district === 'อ.คลองท่อม').length;
+      const island = krabiPlaces.filter(p => p.category === 'เกาะ/ทะเล').length;
+
+      document.getElementById('hero-total-count').textContent = total;
+      document.getElementById('stat-total-places').textContent = total;
+      document.getElementById('count-all').textContent = total;
+      document.getElementById('count-mueang').textContent = mueang;
+      document.getElementById('count-klongthom').textContent = klongthom;
+      document.getElementById('count-island').textContent = island;
+    }
 
     // Initialize Leaflet Map
     function initMap() {
@@ -572,10 +891,28 @@
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
 
-      krabiPlaces.forEach(place => {
+      // Allow clicking map to copy coordinates when in Admin mode
+      map.on('click', (e) => {
+        const lat = e.latlng.lat.toFixed(4);
+        const lng = e.latlng.lng.toFixed(4);
+        document.getElementById('gps-coords').textContent = `${lat}, ${lng}`;
+        if (isAdmin) {
+          document.getElementById('form-lat').value = lat;
+          document.getElementById('form-lng').value = lng;
+        }
+      });
+
+      refreshMapMarkers();
+    }
+
+    function refreshMapMarkers() {
+      Object.values(markers).forEach(m => map.removeLayer(m));
+      markers = {};
+
+      krabiPlaces.forEach((place, idx) => {
         const customIcon = L.divIcon({
           className: 'custom-pin',
-          html: `<div style="background:#0284c7;color:#fff;font-weight:bold;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);font-family:Kanit;">${place.id}</div>`,
+          html: `<div style="background:#0284c7;color:#fff;font-weight:bold;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);font-family:Kanit;">${idx + 1}</div>`,
           iconSize: [28, 28],
           iconAnchor: [14, 14]
         });
@@ -584,7 +921,7 @@
           .addTo(map)
           .bindPopup(`
             <div style="font-family:Kanit;min-width:170px;">
-              <strong style="color:#0284c7;font-size:14px;">#${place.id} ${place.name}</strong><br>
+              <strong style="color:#0284c7;font-size:14px;">#${idx + 1} ${place.name}</strong><br>
               <span style="font-size:12px;color:#475569;">${place.tag} • ${place.district}</span><br>
               <a href="https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}" target="_blank" 
                  style="display:inline-block;margin-top:6px;background:#10b981;color:#fff;padding:3px 10px;border-radius:6px;text-decoration:none;font-size:12px;">
@@ -608,14 +945,22 @@
         return;
       }
 
-      container.innerHTML = list.map(place => `
+      container.innerHTML = list.map((place) => {
+        const displayIndex = krabiPlaces.findIndex(p => p.id === place.id) + 1;
+        const startPrice = place.hotels && place.hotels.length > 0 ? place.hotels[place.hotels.length - 1].price.split(' ')[0] : '฿800';
+        return `
         <div onclick="selectPlace(${place.id})" 
-          class="place-card ${place.id === activePlaceId ? 'active' : ''} glass-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md flex flex-col">
-          <div class="relative h-32 w-full overflow-hidden">
+          class="place-card ${place.id === activePlaceId ? 'active' : ''} glass-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md flex flex-col relative group">
+          <div class="relative h-32 w-full overflow-hidden bg-slate-200">
             <img src="${place.image}" alt="${place.name}" class="w-full h-full object-cover">
             <span class="absolute top-2 left-2 bg-pink-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow">
-              ${place.id}
+              ${displayIndex}
             </span>
+            <button onclick="event.stopPropagation(); requestEditImage(${place.id})" 
+              title="เปลี่ยนรูปภาพสถานที่นี้"
+              class="absolute top-2 right-2 bg-black/65 hover:bg-sky-600 text-white text-[11px] px-2.5 py-1 rounded-lg backdrop-blur-xs transition flex items-center gap-1 shadow">
+              <i class="fa-solid fa-camera"></i> เปลี่ยนรูป
+            </button>
             <span class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded-full">
               <i class="fa-solid fa-star text-amber-400 mr-0.5"></i> ${place.rating.split(' ')[0]}
             </span>
@@ -629,21 +974,22 @@
               <span class="text-sky-700 font-medium">
                 <i class="fa-solid fa-location-dot text-pink-500 mr-1"></i>${place.district}
               </span>
-              <span class="text-emerald-600 font-semibold">${place.hotels[2].price.split(' ')[0]}+</span>
+              <span class="text-emerald-600 font-semibold">${startPrice}+</span>
             </div>
           </div>
         </div>
-      `).join('');
+      `}).join('');
     }
 
     // Select Place & Update Detail Infographic + Map
     function selectPlace(id) {
-      activePlaceId = id;
-      const place = krabiPlaces.find(p => p.id === id);
+      const place = krabiPlaces.find(p => p.id === id) || krabiPlaces[0];
       if (!place) return;
+      activePlaceId = place.id;
+      const displayIndex = krabiPlaces.findIndex(p => p.id === place.id) + 1;
 
-      // Update Header & Infographic stats
-      document.getElementById('detail-badge').textContent = `#${place.id}`;
+      document.getElementById('detail-image').src = place.image;
+      document.getElementById('detail-badge').textContent = `#${displayIndex}`;
       document.getElementById('detail-district').innerHTML = `<i class="fa-solid fa-location-dot mr-1"></i>${place.district}`;
       document.getElementById('detail-type').textContent = place.tag;
       document.getElementById('detail-title').textContent = place.name;
@@ -654,26 +1000,24 @@
       document.getElementById('info-fee').textContent = place.fee;
       document.getElementById('info-rating').textContent = place.rating;
       document.getElementById('budget-total').textContent = `เฉลี่ย ${place.budgetRange}`;
-      document.getElementById('gps-coords').textContent = `${place.lat.toFixed(4)}, ${place.lng.toFixed(4)}`;
+      document.getElementById('gps-coords').textContent = `${Number(place.lat).toFixed(4)}, ${Number(place.lng).toFixed(4)}`;
 
-      // Update Infographic Progress Bars
-      document.getElementById('bar-stay').style.width = `${place.bars.stay}%`;
-      document.getElementById('bar-food').style.width = `${place.bars.food}%`;
-      document.getElementById('bar-travel').style.width = `${place.bars.travel}%`;
+      document.getElementById('bar-stay').style.width = `${place.bars?.stay || 50}%`;
+      document.getElementById('bar-food').style.width = `${place.bars?.food || 30}%`;
+      document.getElementById('bar-travel').style.width = `${place.bars?.travel || 20}%`;
 
-      // Update Google Maps Direct Auto-Navigation URL
       const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}&travelmode=driving`;
       document.getElementById('nav-google-btn').href = navUrl;
 
       // Render Hotels
-      document.getElementById('hotels-list').innerHTML = place.hotels.map(h => `
+      document.getElementById('hotels-list').innerHTML = (place.hotels || []).map(h => `
         <div class="bg-slate-50 hover:bg-indigo-50/50 p-2.5 rounded-xl border border-slate-200/70 transition flex items-center justify-between gap-2">
           <div>
             <div class="font-semibold text-slate-800 text-xs sm:text-sm">${h.name}</div>
             <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
               <span><i class="fa-solid fa-route text-indigo-500 mr-1"></i>${h.dist}</span>
-              <span>• ⭐ ${h.rating}</span>
-              <span class="hidden sm:inline">• ${h.type}</span>
+              <span>• ⭐ ${h.rating || '4.5'}</span>
+              <span class="hidden sm:inline">• ${h.type || 'ที่พักแนะนำ'}</span>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -683,7 +1027,7 @@
       `).join('');
 
       // Render Restaurants
-      document.getElementById('restaurants-list').innerHTML = place.restaurants.map(r => `
+      document.getElementById('restaurants-list').innerHTML = (place.restaurants || []).map(r => `
         <div class="bg-slate-50 hover:bg-amber-50/50 p-2.5 rounded-xl border border-slate-200/70 transition flex items-center justify-between gap-2">
           <div>
             <div class="font-semibold text-slate-800 text-xs sm:text-sm">${r.name}</div>
@@ -697,29 +1041,345 @@
         </div>
       `).join('');
 
-      // Pan Map & Open Marker Popup
       if (map && markers[place.id]) {
         map.flyTo([place.lat, place.lng], 13, { duration: 0.8 });
         markers[place.id].openPopup();
       }
 
-      // Refresh Active State on Grid
       applyFilterAndSearch();
     }
 
+    // ADMIN AUTHENTICATION LOGIC (PIN: 2260)
+    function toggleAdminAuth() {
+      if (isAdmin) {
+        isAdmin = false;
+        updateAdminUI();
+      } else {
+        openPinModal();
+      }
+    }
+
+    function openPinModal(callback = null) {
+      pendingAdminCallback = callback;
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-error').classList.add('hidden');
+      const modal = document.getElementById('pin-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => document.getElementById('pin-input').focus(), 100);
+    }
+
+    function closePinModal() {
+      const modal = document.getElementById('pin-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      pendingAdminCallback = null;
+    }
+
+    function verifyAdminPin() {
+      const pin = document.getElementById('pin-input').value.trim();
+      if (pin === ADMIN_PIN) {
+        isAdmin = true;
+        updateAdminUI();
+        const cb = pendingAdminCallback;
+        closePinModal();
+        if (typeof cb === 'function') cb();
+      } else {
+        document.getElementById('pin-error').classList.remove('hidden');
+      }
+    }
+
+    function updateAdminUI() {
+      const badge = document.getElementById('admin-status-badge');
+      const addBtn = document.getElementById('btn-add-place');
+      const resetBtn = document.getElementById('btn-reset-data');
+      const detailActions = document.getElementById('detail-admin-actions');
+      const lockIcon = document.getElementById('admin-lock-icon');
+      const btnText = document.getElementById('admin-btn-text');
+
+      if (isAdmin) {
+        badge.classList.remove('hidden');
+        addBtn.classList.remove('hidden');
+        resetBtn.classList.remove('hidden');
+        detailActions.classList.remove('hidden');
+        lockIcon.className = 'fa-solid fa-lock-open text-amber-300';
+        btnText.textContent = 'ออกจากโหมดแอดมิน';
+      } else {
+        badge.classList.add('hidden');
+        addBtn.classList.add('hidden');
+        resetBtn.classList.add('hidden');
+        detailActions.classList.add('hidden');
+        lockIcon.className = 'fa-solid fa-lock';
+        btnText.textContent = 'โหมดแอดมิน';
+      }
+    }
+
+    // QUICK IMAGE EDITING (Accessible directly or via Admin PIN 2260)
+    function requestEditImage(placeId) {
+      if (!isAdmin) {
+        openPinModal(() => openImageModal(placeId));
+      } else {
+        openImageModal(placeId);
+      }
+    }
+
+    function openImageModal(placeId) {
+      editingImagePlaceId = placeId;
+      const place = krabiPlaces.find(p => p.id === placeId);
+      if (!place) return;
+
+      document.getElementById('img-modal-place-name').textContent = `สถานที่: ${place.name}`;
+      document.getElementById('img-preview-box').src = place.image;
+      document.getElementById('img-url-input').value = place.image;
+      document.getElementById('img-file-input').value = '';
+
+      const modal = document.getElementById('image-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeImageModal() {
+      const modal = document.getElementById('image-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveQuickImage() {
+      const newImg = document.getElementById('img-url-input').value.trim();
+      if (!newImg) return;
+
+      const place = krabiPlaces.find(p => p.id === editingImagePlaceId);
+      if (place) {
+        place.image = newImg;
+        savePlacesData();
+        selectPlace(place.id);
+      }
+      closeImageModal();
+    }
+
+    // Compress & Convert Uploaded File to Base64 Data URL
+    function handleImageFileUpload(event, targetInputId, targetPreviewId) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 900;
+          const scale = img.width > maxW ? maxW / img.width : 1;
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+          document.getElementById(targetInputId).value = dataUrl;
+          document.getElementById(targetPreviewId).src = dataUrl;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ADD / EDIT FULL PLACE MODAL LOGIC
+    function openPlaceModal(editId = null) {
+      if (!isAdmin) {
+        openPinModal(() => openPlaceModal(editId));
+        return;
+      }
+
+      const modal = document.getElementById('place-modal');
+      const titleEl = document.getElementById('place-modal-title');
+
+      if (editId) {
+        const p = krabiPlaces.find(item => item.id === editId);
+        if (!p) return;
+        titleEl.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i> แก้ไขข้อมูล: ${p.name}`;
+        document.getElementById('form-place-id').value = p.id;
+        document.getElementById('form-name').value = p.name;
+        document.getElementById('form-district').value = p.district;
+        document.getElementById('form-category').value = p.category;
+        document.getElementById('form-tag').value = p.tag;
+        document.getElementById('form-lat').value = p.lat;
+        document.getElementById('form-lng').value = p.lng;
+        document.getElementById('form-desc').value = p.desc;
+        document.getElementById('form-besttime').value = p.bestTime;
+        document.getElementById('form-transport').value = p.transport;
+        document.getElementById('form-fee').value = p.fee;
+        document.getElementById('form-budget').value = p.budgetRange;
+        document.getElementById('form-image').value = p.image;
+        document.getElementById('form-img-preview').src = p.image;
+
+        document.getElementById('form-h1-name').value = p.hotels[0]?.name || '';
+        document.getElementById('form-h1-dist').value = p.hotels[0]?.dist || '';
+        document.getElementById('form-h1-price').value = p.hotels[0]?.price || '';
+        document.getElementById('form-h2-name').value = p.hotels[1]?.name || '';
+        document.getElementById('form-h2-dist').value = p.hotels[1]?.dist || '';
+        document.getElementById('form-h2-price').value = p.hotels[1]?.price || '';
+
+        document.getElementById('form-r1-name').value = p.restaurants[0]?.name || '';
+        document.getElementById('form-r1-spec').value = p.restaurants[0]?.specialty || '';
+        document.getElementById('form-r1-price').value = p.restaurants[0]?.price || '';
+        document.getElementById('form-r2-name').value = p.restaurants[1]?.name || '';
+        document.getElementById('form-r2-spec').value = p.restaurants[1]?.specialty || '';
+        document.getElementById('form-r2-price').value = p.restaurants[1]?.price || '';
+      } else {
+        titleEl.innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-600"></i> เพิ่มสถานที่ท่องเที่ยวใหม่`;
+        document.getElementById('form-place-id').value = '';
+        document.getElementById('form-name').value = '';
+        document.getElementById('form-district').value = 'อ.เมืองกระบี่';
+        document.getElementById('form-category').value = 'อ.เมืองกระบี่';
+        document.getElementById('form-tag').value = 'แลนด์มาร์คใหม่';
+        document.getElementById('form-lat').value = '8.0500';
+        document.getElementById('form-lng').value = '98.8800';
+        document.getElementById('form-desc').value = '';
+        document.getElementById('form-besttime').value = '08:00 - 18:00 น.';
+        document.getElementById('form-transport').value = 'รถยนต์ 20 นาที';
+        document.getElementById('form-fee').value = 'เข้าชมฟรี';
+        document.getElementById('form-budget').value = '฿1,000 - ฿2,500 / วัน';
+        const defaultImg = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80';
+        document.getElementById('form-image').value = defaultImg;
+        document.getElementById('form-img-preview').src = defaultImg;
+
+        document.getElementById('form-h1-name').value = '';
+        document.getElementById('form-h1-dist').value = '';
+        document.getElementById('form-h1-price').value = '';
+        document.getElementById('form-h2-name').value = '';
+        document.getElementById('form-h2-dist').value = '';
+        document.getElementById('form-h2-price').value = '';
+
+        document.getElementById('form-r1-name').value = '';
+        document.getElementById('form-r1-spec').value = '';
+        document.getElementById('form-r1-price').value = '';
+        document.getElementById('form-r2-name').value = '';
+        document.getElementById('form-r2-spec').value = '';
+        document.getElementById('form-r2-price').value = '';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closePlaceModal() {
+      const modal = document.getElementById('place-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function savePlaceForm() {
+      const editId = document.getElementById('form-place-id').value;
+      const name = document.getElementById('form-name').value.trim();
+      const desc = document.getElementById('form-desc').value.trim();
+      const lat = parseFloat(document.getElementById('form-lat').value) || 8.0321;
+      const lng = parseFloat(document.getElementById('form-lng').value) || 98.8224;
+
+      if (!name || !desc) {
+        alert('กรุณากรอกชื่อสถานที่และคำอธิบายให้ครบถ้วน');
+        return;
+      }
+
+      const hotels = [
+        {
+          name: document.getElementById('form-h1-name').value.trim() || 'Krabi Cozy Resort',
+          dist: document.getElementById('form-h1-dist').value.trim() || 'ห่าง 500 ม.',
+          rating: '4.6',
+          price: document.getElementById('form-h1-price').value.trim() || '฿1,500 - ฿2,800',
+          type: 'รีสอร์ทแนะนำ'
+        },
+        {
+          name: document.getElementById('form-h2-name').value.trim() || 'Boutique Stay Krabi',
+          dist: document.getElementById('form-h2-dist').value.trim() || 'ห่าง 1 กม.',
+          rating: '4.4',
+          price: document.getElementById('form-h2-price').value.trim() || '฿850 - ฿1,400',
+          type: 'ที่พักคุ้มค่า'
+        }
+      ];
+
+      const restaurants = [
+        {
+          name: document.getElementById('form-r1-name').value.trim() || 'ครัวปักษ์ใต้ ซีฟู้ด',
+          specialty: document.getElementById('form-r1-spec').value.trim() || 'อาหารใต้ & ซีฟู้ดสด',
+          dist: 'ใกล้สถานที่ท่องเที่ยว',
+          price: document.getElementById('form-r1-price').value.trim() || '฿120 - ฿350'
+        },
+        {
+          name: document.getElementById('form-r2-name').value.trim() || 'Breeze Cafe & Bistro',
+          specialty: document.getElementById('form-r2-spec').value.trim() || 'เครื่องดื่ม & อาหารจานเดียว',
+          dist: 'ห่าง 400 ม.',
+          price: document.getElementById('form-r2-price').value.trim() || '฿80 - ฿220'
+        }
+      ];
+
+      const placeData = {
+        id: editId ? Number(editId) : Date.now(),
+        name,
+        district: document.getElementById('form-district').value,
+        category: document.getElementById('form-category').value,
+        tag: document.getElementById('form-tag').value.trim() || 'จุดเช็กอินแนะนำ',
+        desc,
+        lat,
+        lng,
+        image: document.getElementById('form-image').value.trim() || 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=700&q=80',
+        bestTime: document.getElementById('form-besttime').value.trim() || '08:00 - 18:00 น.',
+        transport: document.getElementById('form-transport').value.trim() || 'รถยนต์ส่วนตัว',
+        fee: document.getElementById('form-fee').value.trim() || 'ชมฟรี',
+        rating: '4.8 / 5.0',
+        budgetRange: document.getElementById('form-budget').value.trim() || '฿1,000 - ฿2,500 / วัน',
+        bars: { stay: 50, food: 30, travel: 20 },
+        hotels,
+        restaurants
+      };
+
+      if (editId) {
+        const idx = krabiPlaces.findIndex(p => p.id === Number(editId));
+        if (idx > -1) krabiPlaces[idx] = placeData;
+      } else {
+        krabiPlaces.push(placeData);
+      }
+
+      savePlacesData();
+      refreshMapMarkers();
+      closePlaceModal();
+      selectPlace(placeData.id);
+    }
+
+    function deletePlace(id) {
+      if (!isAdmin) return;
+      if (krabiPlaces.length <= 1) {
+        alert('ต้องมีสถานที่ท่องเที่ยวอย่างน้อย 1 แห่งในระบบ');
+        return;
+      }
+      const target = krabiPlaces.find(p => p.id === id);
+      if (!confirm(`ยืนยันการลบ "${target?.name}" ออกจากระบบหรือไม่?`)) return;
+
+      krabiPlaces = krabiPlaces.filter(p => p.id !== id);
+      savePlacesData();
+      refreshMapMarkers();
+      selectPlace(krabiPlaces[0].id);
+    }
+
+    function resetDefaultData() {
+      if (!isAdmin) return;
+      if (!confirm('ต้องการรีเซ็ตข้อมูลกลับเป็น 10 สถานที่เริ่มต้นใช่หรือไม่?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      loadPlacesData();
+      refreshMapMarkers();
+      selectPlace(krabiPlaces[0].id);
+    }
+
     // Filter & Search
-    function filterPlaces(category) {
+    function filterPlaces(category, btnEl) {
       currentFilter = category;
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('bg-white', 'text-sky-700', 'font-medium', 'shadow');
         btn.classList.add('bg-sky-800/60', 'text-white');
       });
-      event.currentTarget.classList.remove('bg-sky-800/60', 'text-white');
-      event.currentTarget.classList.add('bg-white', 'text-sky-700', 'font-medium', 'shadow');
-      applyFilterAndSearch();
-    }
-
-    function searchPlaces() {
+      if (btnEl) {
+        btnEl.classList.remove('bg-sky-800/60', 'text-white');
+        btnEl.classList.add('bg-white', 'text-sky-700', 'font-medium', 'shadow');
+      }
       applyFilterAndSearch();
     }
 
@@ -756,7 +1416,6 @@
       });
     }
 
-    // Haversine Formula
     function calcCrowDistance(lat1, lon1, lat2, lon2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -769,9 +1428,10 @@
 
     // Boot App
     window.addEventListener('DOMContentLoaded', () => {
+      loadPlacesData();
       initMap();
       renderPlacesGrid(krabiPlaces);
-      selectPlace(1);
+      selectPlace(krabiPlaces[0].id);
     });
   </script>
 </body>
