@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krabi Smart Guide - ระบบนำเที่ยว 10 พิกัดสุดฮิตจังหวัดกระบี่</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Kanit -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Leaflet CSS & JS for Interactive Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: #f0f9ff;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .place-card.active {
+      border: 3px solid #0284c7;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 25px -5px rgba(2, 132, 199, 0.25);
+    }
+    #map {
+      height: 380px;
+      width: 100%;
+      border-radius: 1rem;
+      z-index: 10;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #bae6fd;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #0284c7;
+    }
+  </style>
+</head>
+<body class="text-slate-800">
+
+  <!-- HERO HEADER (Infographic Banner) -->
+  <header class="relative bg-gradient-to-r from-cyan-700 via-sky-600 to-teal-500 text-white pb-8 pt-6 px-4 shadow-lg overflow-hidden">
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <span class="inline-block bg-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm mb-2">
+            <i class="fa-solid fa-compass mr-1"></i> Krabi Smart Travel & Infographic
+          </span>
+          <h1 class="text-3xl md:text-4xl font-bold tracking-tight">
+            รวม <span class="text-amber-300 text-4xl md:text-5xl">10</span> ที่เที่ยวกระบี่ <span class="underline decoration-pink-400">สุดฮิตห้ามพลาด</span>
+          </h1>
+          <p class="text-sky-100 mt-1 text-sm md:text-base">
+            คลิกเลือกสถานที่เพื่อนำทางอัตโนมัติ ดูข้อมูลอินโฟกราฟิก ที่พัก และร้านอาหารพร้อมราคาชัดเจน
+          </p>
+        </div>
+        <!-- Quick Infographic Summary Pills -->
+        <div class="grid grid-cols-3 gap-2 md:gap-3 bg-white/15 backdrop-blur-md p-3 rounded-2xl border border-white/20 text-center w-full md:w-auto">
+          <div class="px-3 py-1">
+            <div class="text-2xl font-bold text-amber-300">10</div>
+            <div class="text-xs text-sky-100">แลนด์มาร์คฮิต</div>
+          </div>
+          <div class="px-3 py-1 border-x border-white/20">
+            <div class="text-2xl font-bold text-emerald-300">2 อำเภอ</div>
+            <div class="text-xs text-sky-100">เมือง & คลองท่อม</div>
+          </div>
+          <div class="px-3 py-1">
+            <div class="text-2xl font-bold text-pink-300">฿650+</div>
+            <div class="text-xs text-sky-100">งบเริ่มต้น/ทริป</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div class="mt-6 flex flex-col sm:flex-row gap-3 items-center justify-between bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto" id="filter-buttons">
+          <button onclick="filterPlaces('all')" class="filter-btn active bg-white text-sky-700 font-medium px-4 py-1.5 rounded-xl text-sm shadow transition">
+            ทั้งหมด (10)
+          </button>
+          <button onclick="filterPlaces('อ.เมืองกระบี่')" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
+            <i class="fa-solid fa-location-dot mr-1 text-pink-400"></i> อ.เมืองกระบี่ (8)
+          </button>
+          <button onclick="filterPlaces('อ.คลองท่อม')" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
+            <i class="fa-solid fa-tree mr-1 text-emerald-300"></i> อ.คลองท่อม (2)
+          </button>
+          <button onclick="filterPlaces('เกาะ/ทะเล')" class="filter-btn bg-sky-800/60 hover:bg-white/20 text-white px-4 py-1.5 rounded-xl text-sm transition">
+            <i class="fa-solid fa-Anchor mr-1 text-amber-300"></i> หมู่เกาะ/ทางเรือ (5)
+          </button>
+        </div>
+        <div class="relative w-full sm:w-64">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400"></i>
+          <input type="text" id="search-input" oninput="searchPlaces(this.value)" placeholder="ค้นหาสถานที่, กิจกรรม..." 
+            class="w-full pl-10 pr-4 py-1.5 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT LAYOUT -->
+  <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT COLUMN: 10 PLACES GRID (5 cols on lg) -->
+    <section class="lg:col-span-5 flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <span class="w-2.5 h-6 bg-sky-600 rounded-full inline-block"></span>
+          เลือกสถานที่ท่องเที่ยว (คลิกเพื่อดูรายละเอียด)
+        </h2>
+        <span class="text-xs text-slate-500" id="count-label">แสดง 10 สถานที่</span>
+      </div>
+
+      <!-- Cards Container -->
+      <div id="places-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[820px] overflow-y-auto pr-1 custom-scrollbar">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: INTERACTIVE INFOGRAPHIC DETAIL, MAP, HOTELS & RESTAURANTS (7 cols on lg) -->
+    <section class="lg:col-span-7 flex flex-col gap-5" id="detail-panel">
+      
+      <!-- Active Place Header + Navigation CTA -->
+      <div class="glass-card rounded-2xl p-5 shadow-md border-t-4 border-sky-500">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="detail-badge" class="bg-pink-600 text-white font-bold px-3 py-0.5 rounded-full text-sm">#1</span>
+              <span id="detail-district" class="text-xs font-medium bg-sky-100 text-sky-700 px-2.5 py-1 rounded-full">
+                <i class="fa-solid fa-location-dot mr-1"></i>อ.เมืองกระบี่
+              </span>
+              <span id="detail-type" class="text-xs font-medium bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">
+                ชายหาด & หน้าผาหินปูน
+              </span>
+            </div>
+            <h2 id="detail-title" class="text-2xl md:text-3xl font-bold text-slate-800 mt-1">ไร่เลย์บีช (Railay Beach)</h2>
+            <p id="detail-desc" class="text-slate-600 text-sm mt-1">
+              หาดสวย น้ำใส บรรยากาศเงียบสงบ ล้อมรอบด้วยหน้าผาหินปูน เหมาะกับการพักผ่อน
+            </p>
+          </div>
+
+          <!-- Instant Auto-Navigate Buttons -->
+          <div class="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
+            <a id="nav-google-btn" href="#" target="_blank" 
+              class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm">
+              <i class="fa-solid fa-location-arrow animate-pulse"></i> นำทางทันที (Google Maps)
+            </a>
+            <button onclick="locateUserAndRoute()" 
+              class="bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 font-medium px-4 py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
+              <i class="fa-solid fa-crosshairs"></i> คำนวณระยะทางจากตำแหน่งของฉัน
+            </button>
+          </div>
+        </div>
+
+        <!-- INFOGRAPHIC STATS BAR -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+          <div class="bg-sky-50/80 p-3 rounded-xl border border-sky-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-sky-500 text-white flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-500">เวลาแนะนำ</div>
+              <div id="info-besttime" class="text-xs font-bold text-slate-800">08:00 - 18:00 น.</div>
+            </div>
+          </div>
+
+          <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-ship"></i>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-500">การเดินทาง</div>
+              <div id="info-transport" class="text-xs font-bold text-slate-800">เรือหางยาว 15 นาที</div>
+            </div>
+          </div>
+
+          <div class="bg-emerald-50/80 p-3 rounded-xl border border-emerald-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-ticket"></i>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-500">ค่าธรรมเนียม/เรือ</div>
+              <div id="info-fee" class="text-xs font-bold text-emerald-700">เรือไป-กลับ ฿200</div>
+            </div>
+          </div>
+
+          <div class="bg-pink-50/80 p-3 rounded-xl border border-pink-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-pink-500 text-white flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-fire"></i>
+            </div>
+            <div>
+              <div class="text-[11px] text-slate-500">ความนิยม</div>
+              <div id="info-rating" class="text-xs font-bold text-pink-600">4.9 / 5.0 (สูงมาก)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Infographic Budget Breakdown Bar -->
+        <div class="mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span class="font-semibold text-slate-700">
+              <i class="fa-solid fa-chart-pie text-sky-600 mr-1"></i> อินโฟกราฟิกประมาณการค่าใช้จ่ายต่อคน (1 วัน)
+            </span>
+            <span id="budget-total" class="font-bold text-sky-700 text-sm">เฉลี่ย ฿1,500 - ฿3,200 / วัน</span>
+          </div>
+          <!-- Progress Visual Bar -->
+          <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+            <div id="bar-stay" class="bg-indigo-500 h-full transition-all duration-500" style="width: 55%" title="ที่พัก"></div>
+            <div id="bar-food" class="bg-amber-400 h-full transition-all duration-500" style="width: 25%" title="อาหาร"></div>
+            <div id="bar-travel" class="bg-emerald-500 h-full transition-all duration-500" style="width: 20%" title="เดินทาง/ทัวร์"></div>
+          </div>
+          <div class="flex justify-between text-[11px] text-slate-500 mt-1.5">
+            <span><i class="fa-solid fa-circle text-indigo-500 mr-1"></i>ค่าที่พัก (~55%)</span>
+            <span><i class="fa-solid fa-circle text-amber-400 mr-1"></i>ค่าอาหาร (~25%)</span>
+            <span><i class="fa-solid fa-circle text-emerald-500 mr-1"></i>ค่าเดินทาง/ค่าเข้า (~20%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE MAP SECTION -->
+      <div class="glass-card rounded-2xl p-4 shadow-md">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fa-solid fa-map-location-dot text-sky-600 text-base"></i>
+            แผนที่พิกัดจริง & จุดใกล้เคียง (คลิกมาร์กเกอร์เพื่อดูชื่อ)
+          </h3>
+          <span id="distance-status" class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+            พิกัด GPS: <span id="gps-coords">8.0119, 98.8379</span>
+          </span>
+        </div>
+        <div id="map"></div>
+      </div>
+
+      <!-- NEARBY ACCOMMODATION & RESTAURANTS WITH CLEAR PRICING -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Hotels / Resorts -->
+        <div class="glass-card rounded-2xl p-4 shadow-md border-l-4 border-indigo-500">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2 text-base">
+              <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                <i class="fa-solid fa-bed"></i>
+              </span>
+              ที่พักแนะนำใกล้เคียง
+            </h3>
+            <span class="text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-medium">ราคา/คืน</span>
+          </div>
+          <div id="hotels-list" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Restaurants / Cafes -->
+        <div class="glass-card rounded-2xl p-4 shadow-md border-l-4 border-amber-500">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2 text-base">
+              <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+                <i class="fa-solid fa-utensils"></i>
+              </span>
+              ร้านอาหารอร่อยใกล้เคียง
+            </h3>
+            <span class="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-medium">ราคา/ท่าน</span>
+          </div>
+          <div id="restaurants-list" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="max-w-7xl mx-auto px-4 py-6 text-center text-xs text-slate-500 border-t border-slate-200/70 mt-4">
+    ระบบเว็บแอปพลิเคชันนำเที่ยวจังหวัดกระบี่ • ออกแบบในรูปแบบ Interactive Infographic พร้อมพิกัดนำทางอัตโนมัติ
+  </footer>
+
+  <!-- APPLICATION DATA & LOGIC -->
+  <script>
+    // ข้อมูลทั้ง 10 สถานที่ตามภาพอินโฟกราฟิก พร้อมพิกัด GPS ที่พัก และร้านอาหารใกล้เคียง
+    const krabiPlaces = [
+      {
+        id: 1,
+        name: "ไร่เลย์บีช (Railay Beach)",
+        district: "อ.เมืองกระบี่",
+        category: "เกาะ/ทะเล",
+        tag: "หาดสวย & ปีนผา",
+        desc: "หาดสวย น้ำใส บรรยากาศเงียบสงบ ล้อมรอบด้วยหน้าผาหินปูน เหมาะกับการพักผ่อน พายคายัค และชมพระอาทิตย์ตก",
+        lat: 8.0119,
+        lng: 98.8379,
+        image: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=700&q=80",
+        bestTime: "08:00 - 18:30 น.",
+        transport: "เรือหางยาวจากอ่าวนาง 15 นาที",
+        fee: "ค่าเรือไป-กลับ ฿200",
+        rating: "4.9 / 5.0",
+        budgetRange: "฿1,800 - ฿4,500 / วัน",
+        bars: { stay: 60, food: 25, travel: 15 },
+        hotels: [
+          { name: "Railay Bay Resort & Spa", dist: "ติดหาดไร่เลย์", rating: "4.6", price: "฿3,200 - ฿6,500", type: "รีสอร์ท 4 ดาว" },
+          { name: "Sand Sea Resort Railay", dist: "ห่าง 150 ม.", rating: "4.5", price: "฿2,400 - ฿4,200", type: "บังกะโลริมหาด" },
+          { name: "Rapala Rock Wood Resort", dist: "ไร่เลย์ตะวันออก 400 ม.", rating: "4.3", price: "฿950 - ฿1,600", type: "ที่พักสายชิลล์" }
+        ],
+        restaurants: [
+          { name: "The Grotto (Rayavadee)", specialty: "ดินเนอร์ในถ้ำริมหาด", dist: "หาดพระนาง 500 ม.", price: "฿650 - ฿1,800" },
+          { name: "Local Thai Food Railay Walking St.", specialty: "ผัดไทยกุ้งสด & ซีฟู้ด", dist: "ถนนคนเดินไร่เลย์", price: "฿120 - ฿350" },
+          { name: "Mangrove Restaurant", specialty: "แกงส้มปลากะพง & ต้มยำ", dist: "ไร่เลย์ตะวันออก", price: "฿150 - ฿400" }
+        ]
+      },
+      {
+        id: 2,
+        name: "เกาะพีพี (Phi Phi Islands)",
+        district: "อ.เมืองกระบี่",
+        category: "เกาะ/ทะเล",
+        tag: "หมู่เกาะสวรรค์",
+        desc: "หมู่เกาะสวรรค์ น้ำทะเลสีฟ้าใส ดำน้ำดูปะการัง และชมอ่าวมาหยาระดับโลก จุดถ่ายรูปหัวเรือหางยาวสุดปัง",
+        lat: 7.7407,
+        lng: 98.7784,
+        image: "https://images.unsplash.com/photo-1537956965359-7573183d1f57?auto=format&fit=crop&w=700&q=80",
+        bestTime: "07:30 - 16:30 น.",
+        transport: "สปีดโบ๊ท 45 นาที",
+        fee: "ทัวร์ ฿1,200 / อุทยาน ฿40",
+        rating: "4.9 / 5.0",
+        budgetRange: "฿2,200 - ฿5,000 / วัน",
+        bars: { stay: 50, food: 20, travel: 30 },
+        hotels: [
+          { name: "Phi Phi Holiday Resort", dist: "หาดแหลมตง", rating: "4.7", price: "฿3,800 - ฿7,500", type: "รีสอร์ทติดทะเล" },
+          { name: "PP Princess Resort", dist: "อ่าวโล๊ะดาลัม 100 ม.", rating: "4.4", price: "฿2,500 - ฿4,500", type: "ใจกลางเกาะพีพี" },
+          { name: "Panmanee Hotel", dist: "ท่าเรือต้นไทร 250 ม.", rating: "4.3", price: "฿1,200 - ฿2,000", type: "บูทีคโฮเทล" }
+        ],
+        restaurants: [
+          { name: "Anna's Restaurant", specialty: "มัสมั่นไก่ & ซีฟู้ดสด", dist: "ซอยตลาดต้นไทร", price: "฿180 - ฿450" },
+          { name: "Garlic 1992", specialty: "ข้าวผัดสับปะรด & ปลาทอด", dist: "ห่างท่าเรือ 300 ม.", price: "฿150 - ฿350" },
+          { name: "Arida Restaurant", specialty: "อาหารใต้พื้นบ้านรสจัด", dist: "เกาะพีพีดอน", price: "฿100 - ฿280" }
+        ]
+      },
+      {
+        id: 3,
+        name: "ทะเลแหวก (Thale Waek)",
+        district: "อ.เมืองกระบี่",
+        category: "เกาะ/ทะเล",
+        tag: "Unseen Thailand",
+        desc: "ปรากฏการณ์ธรรมชาติ สันทรายขาวละเอียดเชื่อมต่อ 3 เกาะ (เกาะไก่ เกาะทับ เกาะหม้อ) เดินข้ามได้ช่วงน้ำลง",
+        lat: 7.9606,
+        lng: 98.8108,
+        image: "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?auto=format&fit=crop&w=700&q=80",
+        bestTime: "09:00 - 14:00 น. (ช่วงน้ำลง)",
+        transport: "ทัวร์ 4 เกาะ จากอ่าวนาง 20 นาที",
+        fee: "ทัวร์เริ่ม ฿650 / อุทยาน ฿40",
+        rating: "4.8 / 5.0",
+        budgetRange: "฿1,200 - ฿2,800 / วัน",
+        bars: { stay: 45, food: 25, travel: 30 },
+        hotels: [
+          { name: "Centara Grand Beach Resort", dist: "อ่าวไผ่ปล้อง (ใกล้ท่าเรือ)", rating: "4.7", price: "฿4,500 - ฿8,200", type: "ลักชัวรีรีสอร์ท" },
+          { name: "Krabi Resort Ao Nang", dist: "ติดหาดอ่าวนาง (จุดขึ้นเรือ)", rating: "4.4", price: "฿1,900 - ฿3,500", type: "รีสอร์ทริมหาด" },
+          { name: "BlueSotel SMART Ao Nang", dist: "อ่าวนาง 300 ม.", rating: "4.5", price: "฿1,500 - ฿2,600", type: "โมเดิร์นโฮเทล" }
+        ],
+        restaurants: [
+          { name: "วังทรายซีฟู้ด (Wang Sai Seafood)", specialty: "หอยชักตีน & ปูม้านึ่ง", dist: "หาดนพรัตน์ธารา (จุดขึ้นเรือ)", price: "฿250 - ฿600" },
+          { name: "ครัวธารา (Krua Thara)", specialty: "กุ้งมังกร & ปลาเก๋าราดพริก", dist: "ท่าเรือคลองแห้ง", price: "฿250 - ฿550" },
+          { name: "ซุ้มสวัสดิการอุทยานฯ เกาะทับ", specialty: "เครื่องดื่มเย็น & ของว่าง", dist: "บนเกาะทับ", price: "฿50 - ฿120" }
+        ]
+      },
+      {
+        id: 4,
+        name: "ถ้ำพระนาง (Phra Nang Cave)",
+        district: "อ.เมืองกระบี่",
+        category: "อ.เมืองกระบี่",
+        tag: "ถ้ำศักดิ์สิทธิ์ & หาดสวย",
+        desc: "ถ้ำศักดิ์สิทธิ์ริมทะเลพร้อมหาดทรายขาวละเอียดและตำนานความเชื่ออันเป็นเอกลักษณ์ มองเห็นวิวเกาะรังนก",
+        lat: 8.0056,
+        lng: 98.8398,
+        image: "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?auto=format&fit=crop&w=700&q=80",
+        bestTime: "08:30 - 18:00 น.",
+        transport: "เดินจากไร่เลย์ 10 นาที หรือเรือหางยาว",
+        fee: "ชมฟรี (ค่าเรือไป-กลับ ฿200)",
+        rating: "4.8 / 5.0",
+        budgetRange: "฿1,200 - ฿3,500 / วัน",
+        bars: { stay: 55, food: 30, travel: 15 },
+        hotels: [
+          { name: "Rayavadee Krabi", dist: "ติดหาดถ้ำพระนาง", rating: "4.9", price: "฿14,000 - ฿25,000", type: "รีสอร์ท 5 ดาวระดับโลก" },
+          { name: "Sunrise Tropical Resort", dist: "เดินไปถ้ำพระนาง 5 นาที", rating: "4.5", price: "฿2,200 - ฿3,800", type: "บูทีครีสอร์ท" },
+          { name: "Diamond Cave Resort", dist: "ไร่เลย์ตะวันออก 500 ม.", rating: "4.1", price: "฿1,100 - ฿1,900", type: "ประหยัดคุ้มค่า" }
+        ],
+        restaurants: [
+          { name: "เรือขายอาหารริมหาดถ้ำพระนาง (Boat Noodle)", specialty: "ส้มตำ ไก่ย่าง ผัดไทย สมูทตี้", dist: "จอดเรียงริมหาดถ้ำพระนาง", price: "฿80 - ฿180" },
+          { name: "Krua Phranang (Rayavadee)", specialty: "อาหารไทยพรีเมียมวิวทะเล", dist: "หาดพระนาง", price: "฿700 - ฿1,500" },
+          { name: "Tew Lay Bar", specialty: "พิซซ่าเตาถ่าน & น้ำผลไม้ปั่น", dist: "ปลายหาดไร่เลย์ตะวันออก", price: "฿150 - ฿350" }
+        ]
+      },
+      {
+        id: 5,
+        name: "น้ำตกร้อนคลองท่อม (Klong Thom Hot Spring)",
+        district: "อ.คลองท่อม",
+        category: "อ.คลองท่อม",
+        tag: "ออนเซ็นธรรมชาติ",
+        desc: "แช่น้ำแร่ธรรมชาติอุณหภูมิ 40-42°C ไหลลดหลั่นเป็นชั้นน้ำตก ผ่อนคลายความเมื่อยล้าท่ามกลางป่าเขียวขจี",
+        lat: 7.9317,
+        lng: 99.2064,
+        image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=700&q=80",
+        bestTime: "08:30 - 11:00 น. หรือ 15:00 - 17:00 น.",
+        transport: "รถยนต์จากตัวเมืองกระบี่ 45 นาที",
+        fee: "คนไทย ฿20 / ต่างชาติ ฿200",
+        rating: "4.7 / 5.0",
+        budgetRange: "฿800 - ฿1,800 / วัน",
+        bars: { stay: 45, food: 35, travel: 20 },
+        hotels: [
+          { name: "Wareerak Hot Spring & Wellness", dist: "ห่างน้ำตกร้อน 1.5 กม.", rating: "4.7", price: "฿2,500 - ฿4,200", type: "สปา & เวลเนสรีสอร์ท" },
+          { name: "Kaprioka Resort Klong Thom", dist: "ห่าง 3 กม.", rating: "4.4", price: "฿850 - ฿1,400", type: "บังกะโลธรรมชาติ" },
+          { name: "Klong Thom Residence", dist: "ตัวเมืองคลองท่อม 10 นาที", rating: "4.2", price: "฿650 - ฿950", type: "โรงแรมสะอาดประหยัด" }
+        ],
+        restaurants: [
+          { name: "ร้านอาหารสระมรกตซีฟู้ด & อาหารใต้", specialty: "แกงคั่วหอยขม & ไก่ทอดขมิ้น", dist: "ทางเข้าน้ำตกร้อน-สระมรกต", price: "฿100 - ฿250" },
+          { name: "ครัวคลองท่อม (Krua Klong Thom)", specialty: "หมูคั่วเกลือ & น้ำพริกกุ้งเสียบ", dist: "อ.คลองท่อม 6 กม.", price: "฿120 - ฿300" },
+          { name: "ก๋วยเตี๋ยวโกโลบี่ คลองท่อม", specialty: "บะหมี่หมูแดงโบราณ", dist: "ตลาดคลองท่อม", price: "฿60 - ฿100" }
+        ]
+      },
+      {
+        id: 6,
+        name: "สระมรกต (Emerald Pool)",
+        district: "อ.คลองท่อม",
+        category: "อ.คลองท่อม",
+        tag: "สระน้ำผุดสีมรกต",
+        desc: "สระน้ำสีเขียวมรกตใสสะอาดจากน้ำผุดธรรมชาติกลางป่าระกำ และเดินศึกษาธรรมชาติไปชมสระน้ำผุดสีฟ้า (Blue Pool)",
+        lat: 7.9251,
+        lng: 99.2669,
+        image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=700&q=80",
+        bestTime: "08:30 - 15:30 น.",
+        transport: "รถยนต์ 50 นาที (ใกล้กับน้ำตกร้อน 7 กม.)",
+        fee: "คนไทย ฿30 / ต่างชาติ ฿400",
+        rating: "4.8 / 5.0",
+        budgetRange: "฿800 - ฿1,800 / วัน",
+        bars: { stay: 45, food: 35, travel: 20 },
+        hotels: [
+          { name: "Emerald Pool Resort", dist: "ห่างทางเข้า 800 ม.", rating: "4.3", price: "฿800 - ฿1,300", type: "ที่พักใกล้สระมรกต" },
+          { name: "Wareerak Hot Spring Retreat", dist: "ห่าง 7 กม.", rating: "4.7", price: "฿2,500 - ฿4,200", type: "รีสอร์ทบ่อน้ำแร่" },
+          { name: "Baan Suan Klong Thom", dist: "ห่าง 5 กม.", rating: "4.4", price: "฿700 - ฿1,100", type: "โฮมสเตย์สวนผลไม้" }
+        ],
+        restaurants: [
+          { name: "โซนส้มตำไก่ย่างหน้าทางเข้าสระมรกต", specialty: "ไก่ย่างเขาสวนกวาง ส้มตำปูปลาร้า", dist: "หน้าทางเข้า 100 ม.", price: "฿80 - ฿200" },
+          { name: "ร้านขนมจีนบ้านนา คลองท่อม", specialty: "ขนมจีนน้ำยาปู & ไก่ทอดร้อนๆ", dist: "ถนนเพชรเกษม คลองท่อม", price: "฿70 - ฿180" },
+          { name: "คาเฟ่สวนปาล์ม คลองท่อม", specialty: "กาแฟสด เค้กมะพร้าวอ่อน", dist: "ห่างสระมรกต 3 กม.", price: "฿65 - ฿150" }
+        ]
+      },
+      {
+        id: 7,
+        name: "เกาะห้อง (Hong Islands)",
+        district: "อ.เมืองกระบี่",
+        category: "เกาะ/ทะเล",
+        tag: "ลากูนลับ & วิว 360°",
+        desc: "ลากูนลับกลางทะเลโอบล้อมด้วยผาหิน พายคายัค ขึ้นจุดชมวิว 360 องศาที่สวยที่สุดในกระบี่ และดำน้ำดูปะการัง",
+        lat: 8.0778,
+        lng: 98.6783,
+        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80",
+        bestTime: "08:30 - 16:00 น.",
+        transport: "เรือจากหาดทับแขก/อ่าวนาง 25 นาที",
+        fee: "ทัวร์เริ่ม ฿900 / อุทยาน ฿60",
+        rating: "4.9 / 5.0",
+        budgetRange: "฿1,600 - ฿4,500 / วัน",
+        bars: { stay: 55, food: 20, travel: 25 },
+        hotels: [
+          { name: "The Tubkaak Krabi Boutique Resort", dist: "หาดทับแขก (ใกล้เกาะห้องที่สุด)", rating: "4.9", price: "฿6,500 - ฿12,000", type: "บูทีครีสอร์ท 5 ดาว" },
+          { name: "Anyavee Tubkaek Beach Resort", dist: "หาดทับแขก", rating: "4.6", price: "฿2,600 - ฿4,800", type: "รีสอร์ทวิวหมู่เกาะห้อง" },
+          { name: "Varana Hotel Krabi", dist: "คลองม่วง 2 กม.", rating: "4.8", price: "฿3,200 - ฿5,500", type: "เวลเนสโฮเทลใหม่" }
+        ],
+        restaurants: [
+          { name: "The Arundina (The Tubkaak)", specialty: "อาหารไทยไฟน์ไดนิ่ง วิวเกาะห้อง", dist: "หาดทับแขก", price: "฿450 - ฿1,200" },
+          { name: "เขาทองฮิลล์ (Khaothong Hill)", specialty: "คาเฟ่ & ร้านอาหารวิวเกาะห้องพาโนรามา", dist: "เขาทอง (ห่าง 15 นาที)", price: "฿150 - ฿450" },
+          { name: "Sunset Bar Klong Muang", specialty: "ซีฟู้ดบาร์บีคิวริมหาด", dist: "หาดคลองม่วง", price: "฿200 - ฿500" }
+        ]
+      },
+      {
+        id: 8,
+        name: "อ่าวนาง (Ao Nang)",
+        district: "อ.เมืองกระบี่",
+        category: "อ.เมืองกระบี่",
+        tag: "ศูนย์กลางที่พัก & ช้อปปิ้ง",
+        desc: "แหล่งท่องเที่ยวใจกลางกระบี่ จุดขึ้นเรือไปเกาะต่างๆ รวมร้านอาหาร คาเฟ่ ที่พัก โชว์ควงกระบองไฟ และกิจกรรมมากมาย",
+        lat: 8.0321,
+        lng: 98.8224,
+        image: "https://images.unsplash.com/photo-1552550049-db097c9480d1?auto=format&fit=crop&w=700&q=80",
+        bestTime: "ตลอดทั้งวัน (พระอาทิตย์ตก 17:45 น.)",
+        transport: "รถยนต์/สองแถวจากเมืองกระบี่ 25 นาที",
+        fee: "เข้าชมฟรี",
+        rating: "4.7 / 5.0",
+        budgetRange: "฿1,000 - ฿3,500 / วัน",
+        bars: { stay: 55, food: 35, travel: 10 },
+        hotels: [
+          { name: "Panan Krabi Resort", dist: "ใจกลางอ่าวนาง 200 ม.", rating: "4.7", price: "฿2,400 - ฿4,500", type: "สระว่ายน้ำรูฟท็อปวิวผา" },
+          { name: "Holiday Ao Nang Beach Resort", dist: "ติดหาดอ่าวนาง", rating: "4.6", price: "฿2,200 - ฿3,900", type: "เหมาะกับครอบครัว" },
+          { name: "COSI Krabi Ao Nang Beach", dist: "ห่างหาด 400 ม.", rating: "4.6", price: "฿950 - ฿1,600", type: "ไลฟ์สไตล์โฮเทลสุดคุ้ม" }
+        ],
+        restaurants: [
+          { name: "หรอยจัง อ่าวนาง (Roi Jung)", specialty: "เซ็ตซีฟู้ดถาดยักษ์ & ใบเหลียงผัดไข่", dist: "เลียบหาดอ่าวนาง", price: "฿180 - ฿450" },
+          { name: "Lae Lay Grill (แลเล กริลล์)", specialty: "ซีฟู้ดพรีเมียมบนเนินเขาวิวอ่าวนาง", dist: "เนินเขาอ่าวนาง 1.5 กม.", price: "฿450 - ฿1,100" },
+          { name: "Ao Nang Landmark Night Market", specialty: "สตรีทฟู้ด ซีฟู้ดปิ้งย่าง โรตี", dist: "หาดนพรัตน์ธารา", price: "฿60 - ฿250" }
+        ]
+      },
+      {
+        id: 9,
+        name: "เขาขนาบน้ำ (Khao Khanab Nam)",
+        district: "อ.เมืองกระบี่",
+        category: "อ.เมืองกระบี่",
+        tag: "แลนด์มาร์คเมืองกระบี่",
+        desc: "แลนด์มาร์คดังคู่บ้านคู่เมืองกระบี่ เขาหินปูนสองลูกตั้งขนาบแม่น้ำกระบี่ นั่งเรือหัวโทงชมวิวป่าชายเลนและชุมชนเกาะกลาง",
+        lat: 8.0769,
+        lng: 98.9189,
+        image: "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=700&q=80",
+        bestTime: "08:00 - 18:00 น.",
+        transport: "ขึ้นเรือที่ท่าเรือเจ้าฟ้า ตัวเมืองกระบี่",
+        fee: "จุดถ่ายรูปฟรี / เหมาเรือชมถ้ำ ฿400",
+        rating: "4.7 / 5.0",
+        budgetRange: "฿700 - ฿1,900 / วัน",
+        bars: { stay: 50, food: 35, travel: 15 },
+        hotels: [
+          { name: "River Front Krabi Hotel", dist: "ตรงข้ามลานปูดำ & เขาขนาบน้ำ", rating: "4.5", price: "฿1,100 - ฿1,800", type: "วิวแม่น้ำกระบี่" },
+          { name: "The Brown Hotel Krabi", dist: "ถนนคนเดินเมืองกระบี่ 200 ม.", rating: "4.6", price: "฿1,200 - ฿2,100", type: "บูทีคโฮเทลใจกลางเมือง" },
+          { name: "Hop Inn Krabi", dist: "ตัวเมืองกระบี่ 600 ม.", rating: "4.4", price: "฿650 - ฿850", type: "บัดเจ็ทโฮเทลมาตรฐาน" }
+        ],
+        restaurants: [
+          { name: "ขนาบน้ำวิว ซีฟู้ด (Khanab Nam View)", specialty: "กระชังปลาสด ปูดำไข่คลองท่อม", dist: "นั่งเรือข้ามไปเกาะกลาง 5 นาที", price: "฿200 - ฿500" },
+          { name: "ร้านเรือนไม้ (Ruen Mai Krabi)", specialty: "อาหารปักษ์ใต้ มิชลินไกด์", dist: "ตัวเมืองกระบี่ 3 กม.", price: "฿180 - ฿450" },
+          { name: "ตลาดโต้รุ่งท่าเรือเจ้าฟ้า", specialty: "หอยทอด ผัดไทย โรตีกรอบชาชัก", dist: "ริมเขื่อนเจ้าฟ้า", price: "฿50 - ฿150" }
+        ]
+      },
+      {
+        id: 10,
+        name: "เกาะไก่ (Chicken Island)",
+        district: "อ.เมืองกระบี่",
+        category: "เกาะ/ทะเล",
+        tag: "จุดดำน้ำปะการังสวย",
+        desc: "สัญลักษณ์โดดเด่นของทะเลกระบี่ด้วยหินรูปร่างคล้ายหัวไก่ จุดดำน้ำตื้นยอดฮิต น้ำใส ปะการังและฝูงปลาเสือชุกชุม",
+        lat: 7.9547,
+        lng: 98.8065,
+        image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=700&q=80",
+        bestTime: "09:00 - 15:30 น.",
+        transport: "เรือหางยาว/สปีดโบ๊ทจากอ่าวนาง 20 นาที",
+        fee: "รวมในทัวร์ 4 เกาะ เริ่ม ฿650",
+        rating: "4.8 / 5.0",
+        budgetRange: "฿1,200 - ฿2,800 / วัน",
+        bars: { stay: 45, food: 25, travel: 30 },
+        hotels: [
+          { name: "Avani Ao Nang Cliff Krabi Resort", dist: "อ่าวนาง (จุดขึ้นเรือไปเกาะไก่)", rating: "4.6", price: "฿2,800 - ฿5,200", type: "วิวหน้าผาและทะเล" },
+          { name: "Sea Seeker Krabi Resort", dist: "อ่าวนาง 450 ม.", rating: "4.6", price: "฿1,600 - ฿2,900", type: "สระว่ายน้ำขนาดใหญ่" },
+          { name: "Glur Hostel Ao Nang", dist: "อ่าวนาง", rating: "4.5", price: "฿450 - ฿1,100", type: "โฮสเทลร่มรื่น" }
+        ],
+        restaurants: [
+          { name: "Kodam Kitchen (ครัวโกดำ)", specialty: "แกงส้มปลากะพงยอดมะพร้าว", dist: "ซอยอ่าวนาง 8", price: "฿150 - ฿380" },
+          { name: "Family Thaifood & Seafood", specialty: "กุ้งผัดซอสมะขาม & ต้มข่าไก่", dist: "หน้าหาดอ่าวนาง", price: "฿120 - ฿320" },
+          { name: "Reeve Beach Club Krabi", specialty: "อาหารฟิวชั่น & โชว์ไฟริมทะเล", dist: "หน้าหาดอ่าวนาง", price: "฿300 - ฿850" }
+        ]
+      }
+    ];
+
+    let activePlaceId = 1;
+    let currentFilter = 'all';
+    let map, markers = {};
+
+    // Initialize Leaflet Map
+    function initMap() {
+      map = L.map('map').setView([8.0119, 98.8379], 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      krabiPlaces.forEach(place => {
+        const customIcon = L.divIcon({
+          className: 'custom-pin',
+          html: `<div style="background:#0284c7;color:#fff;font-weight:bold;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);font-family:Kanit;">${place.id}</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        const marker = L.marker([place.lat, place.lng], { icon: customIcon })
+          .addTo(map)
+          .bindPopup(`
+            <div style="font-family:Kanit;min-width:170px;">
+              <strong style="color:#0284c7;font-size:14px;">#${place.id} ${place.name}</strong><br>
+              <span style="font-size:12px;color:#475569;">${place.tag} • ${place.district}</span><br>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}" target="_blank" 
+                 style="display:inline-block;margin-top:6px;background:#10b981;color:#fff;padding:3px 10px;border-radius:6px;text-decoration:none;font-size:12px;">
+                 นำทาง Google Maps
+              </a>
+            </div>
+          `);
+
+        marker.on('click', () => selectPlace(place.id));
+        markers[place.id] = marker;
+      });
+    }
+
+    // Render Left Cards Grid
+    function renderPlacesGrid(list) {
+      const container = document.getElementById('places-grid');
+      document.getElementById('count-label').textContent = `แสดง ${list.length} สถานที่`;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-400">ไม่พบสถานที่ที่ค้นหา</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(place => `
+        <div onclick="selectPlace(${place.id})" 
+          class="place-card ${place.id === activePlaceId ? 'active' : ''} glass-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md flex flex-col">
+          <div class="relative h-32 w-full overflow-hidden">
+            <img src="${place.image}" alt="${place.name}" class="w-full h-full object-cover">
+            <span class="absolute top-2 left-2 bg-pink-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow">
+              ${place.id}
+            </span>
+            <span class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded-full">
+              <i class="fa-solid fa-star text-amber-400 mr-0.5"></i> ${place.rating.split(' ')[0]}
+            </span>
+          </div>
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm leading-snug">${place.name}</h3>
+              <p class="text-xs text-slate-500 line-clamp-2 mt-1">${place.desc}</p>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+              <span class="text-sky-700 font-medium">
+                <i class="fa-solid fa-location-dot text-pink-500 mr-1"></i>${place.district}
+              </span>
+              <span class="text-emerald-600 font-semibold">${place.hotels[2].price.split(' ')[0]}+</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Select Place & Update Detail Infographic + Map
+    function selectPlace(id) {
+      activePlaceId = id;
+      const place = krabiPlaces.find(p => p.id === id);
+      if (!place) return;
+
+      // Update Header & Infographic stats
+      document.getElementById('detail-badge').textContent = `#${place.id}`;
+      document.getElementById('detail-district').innerHTML = `<i class="fa-solid fa-location-dot mr-1"></i>${place.district}`;
+      document.getElementById('detail-type').textContent = place.tag;
+      document.getElementById('detail-title').textContent = place.name;
+      document.getElementById('detail-desc').textContent = place.desc;
+
+      document.getElementById('info-besttime').textContent = place.bestTime;
+      document.getElementById('info-transport').textContent = place.transport;
+      document.getElementById('info-fee').textContent = place.fee;
+      document.getElementById('info-rating').textContent = place.rating;
+      document.getElementById('budget-total').textContent = `เฉลี่ย ${place.budgetRange}`;
+      document.getElementById('gps-coords').textContent = `${place.lat.toFixed(4)}, ${place.lng.toFixed(4)}`;
+
+      // Update Infographic Progress Bars
+      document.getElementById('bar-stay').style.width = `${place.bars.stay}%`;
+      document.getElementById('bar-food').style.width = `${place.bars.food}%`;
+      document.getElementById('bar-travel').style.width = `${place.bars.travel}%`;
+
+      // Update Google Maps Direct Auto-Navigation URL
+      const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}&travelmode=driving`;
+      document.getElementById('nav-google-btn').href = navUrl;
+
+      // Render Hotels
+      document.getElementById('hotels-list').innerHTML = place.hotels.map(h => `
+        <div class="bg-slate-50 hover:bg-indigo-50/50 p-2.5 rounded-xl border border-slate-200/70 transition flex items-center justify-between gap-2">
+          <div>
+            <div class="font-semibold text-slate-800 text-xs sm:text-sm">${h.name}</div>
+            <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+              <span><i class="fa-solid fa-route text-indigo-500 mr-1"></i>${h.dist}</span>
+              <span>• ⭐ ${h.rating}</span>
+              <span class="hidden sm:inline">• ${h.type}</span>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-xs sm:text-sm font-bold text-indigo-600 bg-indigo-100/80 px-2.5 py-1 rounded-lg">${h.price}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Render Restaurants
+      document.getElementById('restaurants-list').innerHTML = place.restaurants.map(r => `
+        <div class="bg-slate-50 hover:bg-amber-50/50 p-2.5 rounded-xl border border-slate-200/70 transition flex items-center justify-between gap-2">
+          <div>
+            <div class="font-semibold text-slate-800 text-xs sm:text-sm">${r.name}</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">
+              <span class="text-amber-700 font-medium"><i class="fa-solid fa-bowl-food mr-1"></i>${r.specialty}</span> • ${r.dist}
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-xs sm:text-sm font-bold text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-lg">${r.price}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Pan Map & Open Marker Popup
+      if (map && markers[place.id]) {
+        map.flyTo([place.lat, place.lng], 13, { duration: 0.8 });
+        markers[place.id].openPopup();
+      }
+
+      // Refresh Active State on Grid
+      applyFilterAndSearch();
+    }
+
+    // Filter & Search
+    function filterPlaces(category) {
+      currentFilter = category;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-sky-700', 'font-medium', 'shadow');
+        btn.classList.add('bg-sky-800/60', 'text-white');
+      });
+      event.currentTarget.classList.remove('bg-sky-800/60', 'text-white');
+      event.currentTarget.classList.add('bg-white', 'text-sky-700', 'font-medium', 'shadow');
+      applyFilterAndSearch();
+    }
+
+    function searchPlaces() {
+      applyFilterAndSearch();
+    }
+
+    function applyFilterAndSearch() {
+      const keyword = document.getElementById('search-input').value.trim().toLowerCase();
+      const filtered = krabiPlaces.filter(p => {
+        const matchCategory = currentFilter === 'all' || p.district === currentFilter || p.category === currentFilter;
+        const matchSearch = p.name.toLowerCase().includes(keyword) || p.desc.toLowerCase().includes(keyword) || p.tag.toLowerCase().includes(keyword);
+        return matchCategory && matchSearch;
+      });
+      renderPlacesGrid(filtered);
+    }
+
+    // Calculate Real Distance from User's GPS
+    function locateUserAndRoute() {
+      const statusEl = document.getElementById('distance-status');
+      const place = krabiPlaces.find(p => p.id === activePlaceId);
+
+      if (!navigator.geolocation) {
+        statusEl.innerHTML = `<span class="text-red-600">เบราว์เซอร์ไม่รองรับ GPS</span>`;
+        return;
+      }
+
+      statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1 text-sky-600"></i> กำลังค้นหาพิกัดของคุณ...`;
+      navigator.geolocation.getCurrentPosition(pos => {
+        const userLat = pos.coords.latitude;
+        const userLng = pos.coords.longitude;
+        const distKm = calcCrowDistance(userLat, userLng, place.lat, place.lng).toFixed(1);
+        statusEl.innerHTML = `<span class="text-emerald-700 font-semibold"><i class="fa-solid fa-route mr-1"></i>ห่างจากคุณประมาณ ${distKm} กม.</span>`;
+        window.open(`https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${place.lat},${place.lng}&travelmode=driving`, '_blank');
+      }, () => {
+        statusEl.innerHTML = `<span class="text-amber-600">เปิด Google Maps นำทางไปยังพิกัดปลายทางแล้ว</span>`;
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`, '_blank');
+      });
+    }
+
+    // Haversine Formula
+    function calcCrowDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // Boot App
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      renderPlacesGrid(krabiPlaces);
+      selectPlace(1);
+    });
+  </script>
+</body>
+</html>
